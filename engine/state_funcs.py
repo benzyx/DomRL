@@ -16,20 +16,40 @@ def play_card_from_hand(state, player, card):
     player.play_area.append(card)
     card.play(state, player)
 
+
+def play_card_from_hand_twice(state, player, card, costs_action=False):
+    """
+    Play card from hand twice (Throne Room-like effects). Usually does not
+    decrease actions, so must be explicitly passed if this is the case.
+    """
+    if costs_action:
+        assert(player.actions > 0)
+        player.actions -= 1
+
+    card_idx = player.hand.index(card)
+    player.hand.pop(card_idx)
+    player.play_area.append(card)
+    card.play(state, player)
+    card.play(state, player)
+
+
 def gain_card_to_discard(state, player, pile):
     if pile.qty > 0:
         player.discard_pile.append(pile.card)
         pile.qty -= 1
+
 
 def gain_card_to_hand(state, player, pile):
     if pile.qty > 0:
         player.hand.append(pile.card)
         pile.qty -= 1
 
+
 def gain_card_to_topdeck(state, player, pile):
     if pile.qty > 0:
         player.deck.append(pile.card)
         pile.qty -= 1
+
 
 def buy_card(state, player, card_name):
     """
@@ -49,12 +69,15 @@ def buy_card(state, player, card_name):
 
     gain_card_to_discard(state, player, pile)
 
+
 def player_discard_card_from_hand(state, player, card):
     card_idx = player.hand.index(card)
     player.hand.pop(card_idx)
     player.discard_pile.append(card)
 
+
 def player_trash_card_from_hand(state, player, card):
     card_idx = player.hand.index(card)
     player.hand.pop(card_idx)
     state.trash.append(card)
+

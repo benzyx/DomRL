@@ -7,17 +7,27 @@ class Player(object):
     """
     Player State Object.
     """
-    def __init__(self, name, idx):
+    def __init__(self,
+                 name,
+                 idx,
+                 vp=None,
+                 actions=None,
+                 coins=None,
+                 buys=None,
+                 draw_pile=None,
+                 discard_pile=None,
+                 hand=None,
+                 play_area=None):
         self.name = name
         self.idx = idx
-        self.vp = 0
-        self.actions = 0
-        self.coins = 0
-        self.buys = 0
-        self.draw_pile = [Copper for _ in range(7)] + [Estate for _ in range(3)]
-        self.discard_pile = []
-        self.hand = []
-        self.play_area = []
+        self.vp = vp or 0
+        self.actions = actions or 0
+        self.coins = coins or 0
+        self.buys = buys or 0
+        self.draw_pile = draw_pile or [Copper for _ in range(7)] + [Estate for _ in range(3)]
+        self.discard_pile = discard_pile or []
+        self.hand = hand or []
+        self.play_area = play_area or []
         self.phase = TurnPhase.END_PHASE
 
         shuffle(self.draw_pile)
@@ -91,10 +101,10 @@ class GameState(object):
     """
     Keeps track of the game state.
     """
-    def __init__(self, num_players):
+    def __init__(self, num_players, players=None):
         self.trash = []
         self.turn = 0
-        self.players = [Player(f"Player {i+1}", i) for i in range(num_players)]
+        self.players = players or [Player(f"Player {i+1}", i) for i in range(num_players)]
         self.current_player_idx = 0
         self.context_stack = [TurnContext(self)]
 
@@ -122,8 +132,9 @@ class GameState(object):
             "Workshop" : SupplyPile(Workshop, 10),
         }
 
-        for player in self.players:
-            player.draw(5)
+        if players is None:
+            for player in self.players:
+                player.draw(5)
 
         self.players[0].init_turn()
 
@@ -168,8 +179,9 @@ class GameState(object):
         province_pileout = False
         pileout_count = 0
         for _, pile in self.supply_piles.items():
+            print(pile.card.name)
             if pile.card.name == "Province" and pile.qty == 0:
-                province_pilout = True
+                province_pileout = True
             if pile.qty == 0:
                 pileout_count += 1
         return pileout_count >= 3 or province_pileout
@@ -192,16 +204,25 @@ class GameState(object):
         return context.get_decision()
 
     def resolve_contexts(self):
-        while self.current_context().can_resolve:
-            result = self.current_context().resolve(self)
-            self.pop_context()
-            self.current_context().update(result)
+        while self.current_context.can_resolve:
+            current_idx = self.context_len - 1
+            result = self.current_context.resolve(self)
+            self.pop_context(current_idx)
+            """
+            TODO (henry-prior): check w Ben if this was necessary
+            """
+            #self.current_context.update(result)
 
+    @property
+    def context_len(self):
+        return len(self.context_stack)
+
+    @property
     def current_context(self):
         return self.context_stack[-1]
 
     def add_context(self, context):
         self.context_stack.append(context)
 
-    def pop_context(self):
-        self.context_stack.pop()
+    def pop_context(self, idx=-1):
+        self.context_stack.pop(idx)

@@ -170,6 +170,7 @@ class TrashCardsContext(ctx.ChooseCardsFromHandContext):
         for card in self.cards:
             player_trash_card_from_hand(self.state, self.player, card)
 
+
 class TrashCardsEffect(effect.Effect):
     def __init__(self, num_cards, filter_type, optional):
         self.num_cards = num_cards
@@ -201,6 +202,7 @@ class GainCardFromSupplyContext(ctx.ChoosePileFromSupplyContext):
 
     def resolve(self):
         gain_card_to_discard(self.state, self.player, self.pile)
+
 
 class ChooseCardToGainFromSupplyEffect(effect.Effect):
     def __init__(self, filter_func):
@@ -254,6 +256,7 @@ class ApplyEffectToOpponentsContext(ctx.Context):
     def resolve(self, state):
         pass
 
+
 class OpponentsDiscardDownToEffect(effect.Effect):
 
     def __init__(self, num_cards_downto):
@@ -270,6 +273,7 @@ class OpponentsDiscardDownToEffect(effect.Effect):
         # TODO(benzy): Please fix this stupid hack somehow.
         # We need can't move this to __init__ for ApplyEffectToOpponentsContext.
         state.context_stack[-1].update(None)
+
 
 class OpponentsGainCardEffect(effect.Effect):
     def __init__(self, card_name):
@@ -288,6 +292,40 @@ class OpponentsGainCardEffect(effect.Effect):
         # We need can't move this to __init__ for ApplyEffectToOpponentsContext.
         state.context_stack[-1].update(None)
 
+
+class PlayActionFromHandTwiceContext(ctx.ChooseCardsFromHandContext):
+    def __init__(self, state, player, num_cards, filter_type, optional, prompt):
+        super().__init__(
+            state,
+            player,
+            num_cards,
+            filter_type,
+            optional,
+            prompt,
+        )
+
+    def resolve(self, state):
+        for card in self.cards:
+            play_card_from_hand_twice(self.state, self.player, card)
+
+
+class PlayActionFromHandTwiceEffect(effect.Effect):
+    def __init__(self):
+        self.prompt = 'You may play an action card from your hand twice'
+
+    def run(self, state, player):
+        state.add_context(
+            PlayActionFromHandTwiceContext(
+                state=state,
+                player=player,
+                num_cards=1,
+                filter_type=CardType.ACTION,
+                optional=True,
+                prompt=self.prompt,
+            )
+        )
+
+
 Militia = Card(
     name="Militia",
     types=[CardType.ACTION, CardType.ATTACK],
@@ -295,13 +333,14 @@ Militia = Card(
     coins=2,
     effect_list=[OpponentsDiscardDownToEffect(3)])
 
-# TODO(benzyx): add vp_func attribute or something.
+
 Gardens = Card(
     name="Gardens",
     types=[CardType.VICTORY],
     cost=4,
     vp_fn=lambda all_cards: len(all_cards)
 )
+
 
 Chapel = Card(
     name="Chapel",
@@ -310,12 +349,14 @@ Chapel = Card(
     effect_list=[TrashCardsEffect(4, filter_type=None, optional=True)]
 )
 
+
 Witch = Card(
     name="Witch",
     types=[CardType.ACTION, CardType.ATTACK],
     cost=5,
     add_cards=2,
     effect_list=[OpponentsGainCardEffect("Curse")])
+
 
 Workshop = Card(
     name="Workshop",
@@ -328,19 +369,21 @@ Workshop = Card(
     ]
 )
 
-"""
+
 ThroneRoom = Card(
     name="Throne Room",
     types=[CardType.ACTION],
     cost=4,
-    effect_list=[Throne(2)],
+    effect_list=[PlayActionFromHandTwiceEffect()],
 )
 
+"""
 Remodel = Card(
     name="Remodel",
     types=[CardType.ACTION],
     cost=4,
     effect_list=[TrashAndGainUpToEffect()])
+
 
 Bandit = Card(
     name="Bandit",
@@ -348,5 +391,5 @@ Bandit = Card(
 )
 
 
-
 """
+

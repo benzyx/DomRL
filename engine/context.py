@@ -87,7 +87,7 @@ class ChooseCardsFromHandContext(Context):
         return self.num_remaining == 0 or self.done
 
     def update(self, card):
-        if card:
+        if card is not None:
             self.num_remaining -= 1
             self.cards.append(card)
         else:
@@ -104,6 +104,8 @@ class ChooseCardsFromHandContext(Context):
         def __init__(self, player, context, num_select, prompt, filter_type=None, optional=True):
             moves = []
 
+            if optional:
+                moves.append(self.AddCardToContext(None, context))
             for card_idx, card in enumerate(player.hand):
                 if filter_type is None or card.is_type(filter_type):
                     moves.append(self.AddCardToContext(card, context))
