@@ -11,6 +11,7 @@ class Context(object):
     def get_decision(self):
         raise Exception("get_decision is not implemented.")
 
+    @property
     def can_resolve(self):
         raise Exception("can_resolve not implemented for context.")
 
@@ -44,6 +45,7 @@ class TurnContext(Context):
 
         return decision
 
+    @property
     def can_resolve(self):
         return False
 
@@ -80,6 +82,7 @@ class ChooseCardsFromHandContext(Context):
                 optional=self.optional,
                 prompt=self.prompt)
 
+    @property
     def can_resolve(self):
         return self.num_remaining == 0 or self.done
 

@@ -66,13 +66,18 @@ class Player(object):
         self.coins = 0
         self.phase = TurnPhase.ACTION_PHASE
 
+    @property
     def all_cards(self):
         return self.hand + self.play_area + self.draw_pile + self.discard_pile
 
     def total_vp(self):
         total = self.vp
-        for card in self.all_cards():
-            total += card.vp
+        for card in self.all_cards:
+            """
+            TODO(henry-prior): keep track of deck state as counter and pass
+                here (no change in deck state = no vp computations)
+            """
+            total += card.vp(self.all_cards)
         return total
 
 
@@ -142,6 +147,7 @@ class GameState(object):
     def next_player_idx(self, idx):
         return (idx + 1) % len(self.players)
 
+    @property
     def all_players(self):
         return self.players
 
@@ -186,7 +192,7 @@ class GameState(object):
         return context.get_decision()
 
     def resolve_contexts(self):
-        while self.current_context().can_resolve():
+        while self.current_context().can_resolve:
             result = self.current_context().resolve(self)
             self.pop_context()
             self.current_context().update(result)

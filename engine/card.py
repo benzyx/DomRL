@@ -1,4 +1,7 @@
 from enum import Enum
+from typing import List, Callable
+
+from .effect import Effect
 
 class CardType(Enum):
     VICTORY = 1
@@ -14,25 +17,31 @@ class Card(object):
     """
     Base class for all cards.
     """
-    def __init__(self, name, types, cost,
-            vp=0,
-            coins=0,
-            add_cards=0,
-            add_actions=0,
-            add_buys=0,
-            add_vp=0,
-            effect_list=[]):
+    def __init__(self,
+                 name: str,
+                 types: List[CardType],
+                 cost: int,
+                 vp_constant: int = 0,
+                 coins: int = 0,
+                 add_cards: int = 0,
+                 add_actions: int = 0,
+                 add_buys: int = 0,
+                 add_vp: int = 0,
+                 effect_list: List[Effect] = [],
+                 vp_fn: Callable = None,
+                 ):
         self.name = name
         self.types = types
         self.cost = cost
 
-        self.vp = vp
+        self.vp_constant = vp_constant
         self.coins = coins
         self.add_cards = add_cards
         self.add_actions = add_actions
         self.add_buys = add_buys
         self.add_vp = add_vp
         self.effect_list = effect_list
+        self.vp_fn = vp_fn
 
     def __str__(self):
         return self.name
@@ -41,7 +50,7 @@ class Card(object):
     TODO(benzyx): handle cost modifiers (such as bridge).
     """
     def get_cost(self):
-        return cost
+        return self.cost
 
     def is_type(self, card_type):
         return card_type in self.types

@@ -20,3 +20,4 @@ class StdinAgent(Agent):
 class BigMoneyAgent(Agent):
 	def choose(self, decision, state):
 		pass
+

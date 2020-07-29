@@ -32,6 +32,11 @@ def gain_card_to_topdeck(state, player, pile):
         pile.qty -= 1
 
 def buy_card(state, player, card_name):
+    """
+    TODO (henry-prior): assert statements break execution, can we handle w
+        a return to decision context and warning? (will only come up when human
+        is playing)
+    """
     assert(card_name in state.supply_piles)
     assert(state.supply_piles[card_name].qty > 0)
 
