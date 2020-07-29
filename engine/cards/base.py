@@ -29,25 +29,25 @@ Curse = Card(
     name="Curse",
     types=[CardType.VICTORY],
     cost=0,
-    vp=-1)
+    vp_constant=-1)
 
 Estate = Card(
     name="Estate",
     types=[CardType.VICTORY],
     cost=2,
-    vp=1)
+    vp_constant=1)
 
 Duchy = Card(
     name="Duchy",
     types=[CardType.VICTORY],
     cost=5,
-    vp=3)
+    vp_constant=3)
 
 Province = Card(
     name="Province",
     types=[CardType.VICTORY],
     cost=8,
-    vp=6)
+    vp_constant=6)
 
 """
 Base Expansion Dominion Cards.
@@ -247,6 +247,7 @@ class ApplyEffectToOpponentsContext(ctx.Context):
             self.effect.run(self.state, opp)
             self.opponents_idx += 1
 
+    @property
     def can_resolve(self):
         return self.opponents_idx == len(self.opponents)
 
@@ -299,6 +300,7 @@ Gardens = Card(
     name="Gardens",
     types=[CardType.VICTORY],
     cost=4,
+    vp_fn=lambda all_cards: len(all_cards)
 )
 
 Chapel = Card(
