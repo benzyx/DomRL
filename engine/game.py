@@ -8,8 +8,8 @@ from enum import Enum
 
 
 class Game(object):
-    def __init__(self, agents):
-        self.state = GameState(len(agents))
+    def __init__(self, agents, players=None):
+        self.state = GameState(len(agents), players=players)
         self.agents = agents
 
     def run(self):
@@ -21,7 +21,7 @@ class Game(object):
             player = decision.player
 
             agent = self.agents[player.idx]
-            
+
             # Print state of the board.
             print(state)
             print(f" ==== Decision to be made by {player} ==== ")
