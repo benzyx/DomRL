@@ -1,15 +1,15 @@
 from random import shuffle
-
-from engine.context import *
+from engine.util import TurnPhase
 from engine.cards.base import *
 
 class Player(object):
     """
     Player State Object.
     """
-    def __init__(self, name, idx):
+    def __init__(self, name, idx, agent):
         self.name = name
         self.idx = idx
+        self.agent = agent
         self.vp = 0
         self.actions = 0
         self.coins = 0
@@ -87,16 +87,18 @@ class SupplyPile(object):
         self.qty = qty
         self.buyable = buyable
 
+    def __str__(self):
+        return str(self.card)
+
 class GameState(object):
     """
     Keeps track of the game state.
     """
-    def __init__(self, num_players):
+    def __init__(self, agents):
         self.trash = []
         self.turn = 0
-        self.players = [Player(f"Player {i+1}", i) for i in range(num_players)]
+        self.players = [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = 0
-        self.context_stack = [TurnContext(self)]
 
         """
         TODO(benzyx): Make supply piles handle mixed piles.
@@ -134,10 +136,11 @@ class GameState(object):
             ret += f"Supply pile contains {name}, {pile.qty} remaining.\n"
 
         # Who's turn it is.
-        ret += f"{self.current_player().name}'s turn!"
+        ret += f"{self.current_player.name}'s turn!"
 
         return ret
 
+    @property
     def current_player(self):
         return self.players[self.current_player_idx]
 
@@ -160,9 +163,9 @@ class GameState(object):
         return ret
 
     def end_turn(self):
-        self.current_player().clean_up()
+        self.current_player.clean_up()
         self.next_player_turn()
-        self.current_player().init_turn()
+        self.current_player.init_turn()
 
     def is_game_over(self):
         province_pileout = False
@@ -185,23 +188,3 @@ class GameState(object):
 
         return winners
 
-    def get_next_decision(self):
-        if len(self.context_stack) == 0:
-            raise Exception("Context stack is empty!")
-        context = self.context_stack[-1]
-        return context.get_decision()
-
-    def resolve_contexts(self):
-        while self.current_context().can_resolve:
-            result = self.current_context().resolve(self)
-            self.pop_context()
-            self.current_context().update(result)
-
-    def current_context(self):
-        return self.context_stack[-1]
-
-    def add_context(self, context):
-        self.context_stack.append(context)
-
-    def pop_context(self):
-        self.context_stack.pop()

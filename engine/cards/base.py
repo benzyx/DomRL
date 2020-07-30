@@ -1,8 +1,9 @@
 from engine.card import Card, CardType
 from engine.state_funcs import *
 
+import engine.decision as dec
 import engine.effect as effect
-import engine.context as ctx
+import engine.game as game
 
 """
 Implementations of base treasure and cards.
@@ -88,48 +89,34 @@ Smithy = Card(
     types=[CardType.ACTION],
     cost=4,
     add_cards=3)
-
-
-"""
-Context for a player discarding a exactly or up to a number of cards.
-"""
-class DiscardCardsContext(ctx.ChooseCardsFromHandContext):
-    def __init__(self, state, player, num_cards, filter_type, optional, prompt):
-        super().__init__(
-            state,
-            player,
-            num_cards,
-            filter_type,
-            optional,
-            prompt,
-        )
-
-    def resolve(self, state):
-        for card in self.cards:
-            player_discard_card(self.state, self.player, card)
+        
 
 """
 Discard cards in player's hand. Example: Poacher.
 """
 class DiscardCardsEffect(effect.Effect):
-    def __init__(self, num_cards, filter_type, optional):
+    def __init__(self, num_cards, filter_func, optional):
         self.num_cards = num_cards
-        self.filter_type = filter_type
+        self.filter_func = filter_func
         self.optional = optional
-        if optional:
-            self.prompt = f"Discard up to {num_cards} cards."
-        else:
-            self.prompt = f"Discard exactly {num_cards} cards."
+
 
     def run(self, state, player):
-        state.add_context(
-            DiscardCardsContext(
-                state=state,
-                player=player,
-                num_cards=self.num_cards,
-                filter_type=self.filter_type,
-                optional=self.optional,
-                prompt=self.prompt))
+        if optional:
+            prompt = f"Discard up to {num_cards} cards."
+        else:
+            prompt = f"Discard exactly {num_cards} cards."
+
+        decision = dec.ChooseCardsDecision(player,
+            num_select=num_cards,
+            prompt=prompt,
+            filter_func=self.filter_func,
+            optional=self.optional)
+
+        game.process_decision(player.agent, decision, state)
+
+        for card in decision.cards:
+            player_discard_card_from_hand(state, player, card)
 
 """
 Discard down to some number of cards in player's hand. Example: Militia.
@@ -139,82 +126,44 @@ class DiscardDownToEffect(effect.Effect):
         self.num_cards_downto = num_cards_downto
 
     def run(self, state, player):
-
+        prompt = f"Discard down to {self.num_cards_downto} cards."
         num_to_discard = len(player.hand) - self.num_cards_downto
-        state.add_context(
-            DiscardCardsContext(
-                state,
-                player,
-                num_to_discard,
-                filter_type=None,
-                optional=False,
-                prompt=f"You must discard down to {self.num_cards_downto} cards. Discard {num_to_discard}:",
-            )
-        )
 
-"""
-Context for a player trashing a exactly or up to a number of cards.
-"""
-class TrashCardsContext(ctx.ChooseCardsFromHandContext):
-    def __init__(self, state, player, num_cards, filter_type, optional, prompt):
-        super().__init__(
-            state,
-            player,
-            num_cards,
-            filter_type,
-            optional,
-            prompt,
-        )
+        decision = dec.ChooseCardsDecision(player,
+            num_select=num_to_discard,
+            prompt=prompt,
+            filter_func=None,
+            optional=True)
 
-    def resolve(self, state):
-        for card in self.cards:
-            player_trash_card_from_hand(self.state, self.player, card)
+        game.process_decision(player.agent, decision, state)
+
+        for card in decision.cards:
+            player_discard_card_from_hand(state, player, card)
+
 
 class TrashCardsEffect(effect.Effect):
-    def __init__(self, num_cards, filter_type, optional):
+    def __init__(self, num_cards, filter_func=None, optional=True):
         self.num_cards = num_cards
-        self.filter_type = filter_type
-        self.optional = optional
-        if optional:
-            self.prompt = f"Trash up to {num_cards} cards."
-        else:
-            self.prompt = f"Trash exactly {num_cards} cards."
-
-    def run(self, state, player):
-        state.add_context(
-            TrashCardsContext(
-                state=state,
-                player=player,
-                num_cards=self.num_cards,
-                filter_type=self.filter_type,
-                optional=self.optional,
-                prompt=self.prompt
-            )
-        )
-
-"""
-Context for a player gaining a card from the supply.
-"""
-class GainCardFromSupplyContext(ctx.ChoosePileFromSupplyContext):
-    def __init__(self, state, player, filter_func):
-        super().__init__(self, state, player, filter_func)
-
-    def resolve(self):
-        gain_card_to_discard(self.state, self.player, self.pile)
-
-class ChooseCardToGainFromSupplyEffect(effect.Effect):
-    def __init__(self, filter_func):
         self.filter_func = filter_func
+        self.optional = optional
+
 
     def run(self, state, player):
-        state.add_context(
-            GainCardFromSupplyContext(
-                state=state,
-                player=player,
-                filter_func=self.filter_func,
-                prompt=self.prompt
-            )
-        )
+        if self.optional:
+            prompt = f"Trash up to {self.num_cards} cards."
+        else:
+            prompt = f"Trash exactly {self.num_cards} cards."
+
+        decision = dec.ChooseCardsDecision(player,
+            num_select=self.num_cards,
+            prompt=prompt,
+            filter_func=self.filter_func,
+            optional=self.optional)
+
+        game.process_decision(player.agent, decision, state)
+
+        for card in decision.cards:
+            player_trash_card_from_hand(state, player, card)
 
 
 class GainCardToDiscardPileEffect(effect.Effect):
@@ -226,67 +175,41 @@ class GainCardToDiscardPileEffect(effect.Effect):
         pile = state.supply_piles[self.card_name]
         gain_card_to_discard(state, player, pile)
 
-"""
 
-"""
-class ApplyEffectToOpponentsContext(ctx.Context):
-    """
-    TODO(benzyx): Have it automatically run the effect after initialization.
-    Need to call update to this when updating.
-    """
-    def __init__(self, state, player, effect):
-        self.state = state
-        self.player = player
-        self.effect = effect
-        self.opponents = state.other_players(player)
-        self.opponents_idx = 0
+class ChoosePileToGainEffect(effect.Effect):
+    def __init__(self, filter_func):
+        self.filter_func = filter_func
 
-    def update(self, res):
-        if self.opponents_idx < len(self.opponents):
-            opp = self.opponents[self.opponents_idx]
-            self.effect.run(self.state, opp)
-            self.opponents_idx += 1
+    def run(self, state, player):
+        prompt = f"Choose a pile to gain card from."
+        
+        decision = dec.ChoosePileDecision(state, player, self.filter_func, prompt)
+        
+        print(decision)
+        
+        game.process_decision(player.agent, decision, state)
 
-    @property
-    def can_resolve(self):
-        return self.opponents_idx == len(self.opponents)
+        gain_card_to_discard(state, player, decision.pile)
 
-    def resolve(self, state):
-        pass
 
 class OpponentsDiscardDownToEffect(effect.Effect):
-
     def __init__(self, num_cards_downto):
         self.num_cards_downto = num_cards_downto
 
     def run(self, state, player):
+        for opp in state.other_players(player):
+            DiscardDownToEffect(self.num_cards_downto).run(state, opp)
 
-        state.add_context(
-            ApplyEffectToOpponentsContext(
-                state,
-                player,
-                DiscardDownToEffect(self.num_cards_downto)))
-
-        # TODO(benzy): Please fix this stupid hack somehow.
-        # We need can't move this to __init__ for ApplyEffectToOpponentsContext.
-        state.context_stack[-1].update(None)
 
 class OpponentsGainCardEffect(effect.Effect):
     def __init__(self, card_name):
         self.card_name = card_name
 
     def run(self, state, player):
-        state.add_context(
-            ApplyEffectToOpponentsContext(
-                state,
-                player,
-                GainCardToDiscardPileEffect(self.card_name)
-            )
-        )
+        for opp in state.other_players(player):
+            GainCardToDiscardPileEffect(card_name).run(state, player)
 
-        # TODO(benzy): Please fix this stupid hack somehow.
-        # We need can't move this to __init__ for ApplyEffectToOpponentsContext.
-        state.context_stack[-1].update(None)
+
 
 Militia = Card(
     name="Militia",
@@ -307,7 +230,7 @@ Chapel = Card(
     name="Chapel",
     types=[CardType.ACTION],
     cost=2,
-    effect_list=[TrashCardsEffect(4, filter_type=None, optional=True)]
+    effect_list=[TrashCardsEffect(4, optional=True)]
 )
 
 Witch = Card(
@@ -322,7 +245,7 @@ Workshop = Card(
     types=[CardType.ACTION],
     cost=3,
     effect_list=[
-        ChooseCardToGainFromSupplyEffect(
+        ChoosePileToGainEffect(
             filter_func=lambda pile: (pile.card.cost <= 4)
         )
     ]

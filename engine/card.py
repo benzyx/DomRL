@@ -28,12 +28,12 @@ class Card(object):
                  add_buys: int = 0,
                  add_vp: int = 0,
                  effect_list: List[Effect] = [],
+                 effect_fn: Callable = None,
                  vp_fn: Callable = None,
                  ):
         self.name = name
         self.types = types
         self.cost = cost
-
         self.vp_constant = vp_constant
         self.coins = coins
         self.add_cards = add_cards
@@ -41,6 +41,7 @@ class Card(object):
         self.add_buys = add_buys
         self.add_vp = add_vp
         self.effect_list = effect_list
+        self.effect_fn = effect_fn
         self.vp_fn = vp_fn
 
     def __str__(self):
@@ -55,17 +56,17 @@ class Card(object):
     def is_type(self, card_type):
         return card_type in self.types
 
-    def draw_cards(self, state, num):
-        state.current_player().draw(num)
+    def draw_cards(self, player, num):
+        player.draw(num)
 
-    def increment_actions(self, state, num):
-        state.current_player().actions += num
+    def increment_actions(self, player, num):
+        player.actions += num
 
-    def increment_buys(self, state, num):
-        state.current_player().buys += num
+    def increment_buys(self, player, num):
+        player.buys += num
 
-    def increment_coins(self, state, num):
-        state.current_player().coins += num
+    def increment_coins(self, player, num):
+        player.coins += num
 
     """
     The entry point for card play effect.
@@ -73,10 +74,13 @@ class Card(object):
     - player: Player who played the card.
     """
     def play(self, state, player):
-        self.draw_cards(state, self.add_cards)
-        self.increment_actions(state, self.add_actions)
-        self.increment_buys(state, self.add_buys)
-        self.increment_coins(state, self.coins)
+        self.draw_cards(player, self.add_cards)
+        self.increment_actions(player, self.add_actions)
+        self.increment_buys(player, self.add_buys)
+        self.increment_coins(player, self.coins)
 
         for effect in self.effect_list:
             effect.run(state, player)
+
+        if self.effect_fn:
+            self.effect_fn(state, player)
