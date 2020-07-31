@@ -101,12 +101,22 @@ class ChooseCardsDecision(Decision):
     """
     Decision for choosing cards (from the players hand).
     """
-    def __init__(self, player, num_select, prompt, filter_func=None, optional=True):
+    def __init__(self,
+        player,
+        num_select,
+        prompt,
+        filter_func=None,
+        optional=True,
+        card_container=None):
         
         self.cards = []
         moves = []
 
-        for card_idx, card in enumerate(player.hand):
+        # By default, this decision chooses from the player's hand.
+        if card_container == None:
+            card_container = player.hand
+
+        for card_idx, card in enumerate(card_container):
             if filter_func is None or filter_func(card):
                 moves.append(self.ChooseCard(card, self))
 

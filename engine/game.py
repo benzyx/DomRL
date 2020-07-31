@@ -8,23 +8,20 @@ from engine.util import TurnPhase
 from enum import Enum
 
 def process_decision(agent, decision, state):
-    while True:
-        # Get decision from agent.
-        move_indices = agent.choose(decision, state)
 
-        if decision.optional:
-            if len(move_indices) > decision.num_select:
-                print("Decision election error! Too many moves selected.")
-                continue
-        else:
-            if len(move_indices) != decision.num_select:
-                print("Decision election error! Number of moves selected not correct.")
-                continue
+    # Get decision from agent.
+    move_indices = agent.choose(decision, state)
 
-        for idx in move_indices:
-            decision.moves[idx].do(state)
+    # TODO(benzyx): Enforce that the indices are not repeated.
+    if decision.optional:
+        if len(move_indices) > decision.num_select:
+            raise Exception("Decision election error! Too many moves selected.")
+    else:
+        if len(move_indices) != decision.num_select:
+            raise Exception("Decision election error! Number of moves selected not correct.")
 
-        break
+    for idx in move_indices:
+        decision.moves[idx].do(state)
 
 class Game(object):
     def __init__(self, agents):
@@ -52,11 +49,5 @@ class Game(object):
                 raise Exception("TurnContext: Unknown current player phase")
             
             # Print state of the board.
-            print(state)
-            print(f" ==== Decision to be made by {player} ==== ")
-            print(f"Actions: {player.actions} | Buys: {player.buys} | Coins: {player.coins}")
-            print("Hand: ", list(map(str, player.hand)))
-
-
             process_decision(agent, decision, state)
 

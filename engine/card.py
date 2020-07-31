@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import List, Callable
+from typing import List, Callable, Type
 
 from .effect import Effect
+import engine.state as st
 
 class CardType(Enum):
     VICTORY = 1
@@ -44,28 +45,28 @@ class Card(object):
         self.effect_fn = effect_fn
         self.vp_fn = vp_fn
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     """
     TODO(benzyx): handle cost modifiers (such as bridge).
     """
-    def get_cost(self):
+    def get_cost(self) -> int:
         return self.cost
 
-    def is_type(self, card_type):
+    def is_type(self, card_type: CardType) -> bool:
         return card_type in self.types
 
-    def draw_cards(self, player, num):
-        player.draw(num)
+    def draw_cards(self, player, num: int):
+        player.draw_into_hand(num)
 
-    def increment_actions(self, player, num):
+    def increment_actions(self, player, num: int):
         player.actions += num
 
-    def increment_buys(self, player, num):
+    def increment_buys(self, player, num: int):
         player.buys += num
 
-    def increment_coins(self, player, num):
+    def increment_coins(self, player, num: int):
         player.coins += num
 
     """

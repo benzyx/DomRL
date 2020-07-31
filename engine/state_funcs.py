@@ -1,5 +1,27 @@
 from engine.card import CardType
 
+
+def trash(state, player, card, container):
+    card_idx = container.index(card)
+    container.pop(card_idx)
+    state.trash.append(card)
+
+def discard(state, player, card, container):
+    card_idx = container.index(card)
+    container.pop(card_idx)
+    player.discard_pile.append(card)
+
+def topdeck(state, player, card, container):
+    card_idx = container.index(card)
+    container.pop(card_idx)
+    player.deck.append(card)
+
+def play(state, player, card, container):
+    card_idx = container.index(card)
+    container.pop(card_idx)
+    player.play_area.append(card)
+    card.play(state, player)
+
 """
 These apply the effect to a card in a player's hand.
 
@@ -11,10 +33,7 @@ def play_card_from_hand(state, player, card):
         assert(player.actions > 0)
         player.actions -= 1
 
-    card_idx = player.hand.index(card)
-    player.hand.pop(card_idx)
-    player.play_area.append(card)
-    card.play(state, player)
+    play(state, player, card, player.hand)
 
 def gain_card_to_discard(state, player, pile):
     if pile.qty > 0:

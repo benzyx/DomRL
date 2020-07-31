@@ -1,6 +1,6 @@
 from random import shuffle
 from engine.util import TurnPhase
-from engine.cards.base import *
+import engine.cards.base as base
 
 class Player(object):
     """
@@ -14,7 +14,7 @@ class Player(object):
         self.actions = 0
         self.coins = 0
         self.buys = 0
-        self.draw_pile = [Copper for _ in range(7)] + [Estate for _ in range(3)]
+        self.draw_pile = [base.Copper for _ in range(7)] + [base.Estate for _ in range(3)]
         self.discard_pile = []
         self.hand = []
         self.play_area = []
@@ -29,36 +29,41 @@ class Player(object):
         return self.name
 
     def cycle_shuffle(self):
+        """
+        Moves all cards from discard pile to draw_pile, and shuffles it.
+        """
         assert(len(self.draw_pile) == 0)
         self.draw_pile = self.discard_pile
         self.discard_pile = []
         shuffle(self.draw_pile)
 
-    # TODO(ben): Refactor this to use draw_one() repeatedly.
-    def draw(self, num):
-
-        # Enough cards left to draw.
-        # We draw cards from the back of the list.
-        if len(self.draw_pile) >= num:
-            cards_to_draw = self.draw_pile[:num]
-            self.draw_pile = self.draw_pile[num:]
-            self.hand.extend(cards_to_draw)
-        else:
-            remaining = num - len(self.draw_pile)
-
-            self.hand.extend(self.draw_pile)
-            self.draw_pile = []
+    def draw_one(self):
+        if len(self.draw_pile) == 0:
             self.cycle_shuffle()
 
-            if len(self.draw_pile) > 0:
-                self.draw(remaining)
+        if len(self.draw_pile) >= 1:
+            return self.draw_pile.pop()
+        else:
+            return None
+
+    def draw(self, num):
+        cards = []
+        for i in range(num):
+            card = self.draw_one()
+            if card:
+                cards.append(card)
+        return cards
+
+    def draw_into_hand(self, num):
+        cards = self.draw(num)
+        self.hand.extend(cards)
 
     def clean_up(self):
         self.discard_pile.extend(self.play_area)
         self.discard_pile.extend(self.hand)
         self.play_area = []
         self.hand = []
-        self.draw(5)
+        self.draw_into_hand(5)
 
     def init_turn(self):
         self.actions = 1
@@ -104,28 +109,31 @@ class GameState(object):
         TODO(benzyx): Make supply piles handle mixed piles.
         """
         self.supply_piles = {
-            "Curse" : SupplyPile(Curse, 10),
-            "Estate" : SupplyPile(Estate, 8),
-            "Duchy" : SupplyPile(Duchy, 8),
-            "Province" : SupplyPile(Province, 8),
-            "Copper" : SupplyPile(Copper, 46),
-            "Silver" : SupplyPile(Silver, 30),
-            "Gold" : SupplyPile(Gold, 16),
+            "Curse" : SupplyPile(base.Curse, 10),
+            "Estate" : SupplyPile(base.Estate, 8),
+            "Duchy" : SupplyPile(base.Duchy, 8),
+            "Province" : SupplyPile(base.Province, 8),
+            "Copper" : SupplyPile(base.Copper, 46),
+            "Silver" : SupplyPile(base.Silver, 30),
+            "Gold" : SupplyPile(base.Gold, 16),
 
             # Testing mode:
-            "Village" : SupplyPile(Village, 10),
-            "Laboratory" : SupplyPile(Laboratory, 10),
-            "Market" : SupplyPile(Market, 10),
-            "Festival" : SupplyPile(Festival, 10),
-            "Smithy" : SupplyPile(Smithy, 10),
-            "Militia" : SupplyPile(Militia, 10),
-            "Chapel" : SupplyPile(Chapel, 10),
-            "Witch" : SupplyPile(Witch, 10),
-            "Workshop" : SupplyPile(Workshop, 10),
+            "Village" : SupplyPile(base.Village, 10),
+            "Laboratory" : SupplyPile(base.Laboratory, 10),
+            "Market" : SupplyPile(base.Market, 10),
+            "Festival" : SupplyPile(base.Festival, 10),
+            "Smithy" : SupplyPile(base.Smithy, 10),
+            "Militia" : SupplyPile(base.Militia, 10),
+            "Chapel" : SupplyPile(base.Chapel, 10),
+            "Witch" : SupplyPile(base.Witch, 10),
+            "Workshop" : SupplyPile(base.Workshop, 10),
+            "Bandit" : SupplyPile(base.Bandit, 10),
+            "Remodel" : SupplyPile(base.Remodel, 10),
+
         }
 
         for player in self.players:
-            player.draw(5)
+            player.draw_into_hand(5)
 
         self.players[0].init_turn()
 
