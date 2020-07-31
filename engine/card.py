@@ -4,6 +4,7 @@ from typing import List, Callable, Type
 from .effect import Effect
 import engine.state as st
 
+
 class CardType(Enum):
     VICTORY = 1
     TREASURE = 2
@@ -14,10 +15,12 @@ class CardType(Enum):
     DURATION = 7
     NIGHT = 8
 
+
 class Card(object):
     """
     Base class for all cards.
     """
+
     def __init__(self,
                  name: str,
                  types: List[CardType],
@@ -51,6 +54,7 @@ class Card(object):
     """
     TODO(benzyx): handle cost modifiers (such as bridge).
     """
+
     def get_cost(self) -> int:
         return self.cost
 
@@ -74,6 +78,7 @@ class Card(object):
     - state: State of the Game
     - player: Player who played the card.
     """
+
     def play(self, state, player):
         self.draw_cards(player, self.add_cards)
         self.increment_actions(player, self.add_actions)

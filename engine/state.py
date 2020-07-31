@@ -1,11 +1,14 @@
 from random import shuffle
 from engine.util import TurnPhase
 import engine.cards.base as base
+import engine.logger as log
+
 
 class Player(object):
     """
     Player State Object.
     """
+
     def __init__(self, name, idx, agent):
         self.name = name
         self.idx = idx
@@ -32,7 +35,7 @@ class Player(object):
         """
         Moves all cards from discard pile to draw_pile, and shuffles it.
         """
-        assert(len(self.draw_pile) == 0)
+        assert (len(self.draw_pile) == 0)
         self.draw_pile = self.discard_pile
         self.discard_pile = []
         shuffle(self.draw_pile)
@@ -87,7 +90,7 @@ class Player(object):
 
 
 class SupplyPile(object):
-    def __init__(self, card, qty, buyable = True):
+    def __init__(self, card, qty, buyable=True):
         self.card = card
         self.qty = qty
         self.buyable = buyable
@@ -95,40 +98,43 @@ class SupplyPile(object):
     def __str__(self):
         return str(self.card)
 
+
 class GameState(object):
     """
     Keeps track of the game state.
     """
+
     def __init__(self, agents):
         self.trash = []
+        self.event_log = log.EventLog(agents)
         self.turn = 0
-        self.players = [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
+        self.players = [Player(f"Player {i + 1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = 0
 
         """
         TODO(benzyx): Make supply piles handle mixed piles.
         """
         self.supply_piles = {
-            "Curse" : SupplyPile(base.Curse, 10),
-            "Estate" : SupplyPile(base.Estate, 8),
-            "Duchy" : SupplyPile(base.Duchy, 8),
-            "Province" : SupplyPile(base.Province, 8),
-            "Copper" : SupplyPile(base.Copper, 46),
-            "Silver" : SupplyPile(base.Silver, 30),
-            "Gold" : SupplyPile(base.Gold, 16),
+            "Curse": SupplyPile(base.Curse, 10),
+            "Estate": SupplyPile(base.Estate, 8),
+            "Duchy": SupplyPile(base.Duchy, 8),
+            "Province": SupplyPile(base.Province, 8),
+            "Copper": SupplyPile(base.Copper, 46),
+            "Silver": SupplyPile(base.Silver, 30),
+            "Gold": SupplyPile(base.Gold, 16),
 
             # Testing mode:
-            "Village" : SupplyPile(base.Village, 10),
-            "Laboratory" : SupplyPile(base.Laboratory, 10),
-            "Market" : SupplyPile(base.Market, 10),
-            "Festival" : SupplyPile(base.Festival, 10),
-            "Smithy" : SupplyPile(base.Smithy, 10),
-            "Militia" : SupplyPile(base.Militia, 10),
-            "Chapel" : SupplyPile(base.Chapel, 10),
-            "Witch" : SupplyPile(base.Witch, 10),
-            "Workshop" : SupplyPile(base.Workshop, 10),
-            "Bandit" : SupplyPile(base.Bandit, 10),
-            "Remodel" : SupplyPile(base.Remodel, 10),
+            "Village": SupplyPile(base.Village, 10),
+            "Laboratory": SupplyPile(base.Laboratory, 10),
+            "Market": SupplyPile(base.Market, 10),
+            "Festival": SupplyPile(base.Festival, 10),
+            "Smithy": SupplyPile(base.Smithy, 10),
+            "Militia": SupplyPile(base.Militia, 10),
+            "Chapel": SupplyPile(base.Chapel, 10),
+            "Witch": SupplyPile(base.Witch, 10),
+            "Workshop": SupplyPile(base.Workshop, 10),
+            "Bandit": SupplyPile(base.Bandit, 10),
+            "Remodel": SupplyPile(base.Remodel, 10),
 
         }
 
@@ -165,7 +171,7 @@ class GameState(object):
     def other_players(self, player):
         ret = []
         idx = self.next_player_idx(player.idx)
-        while (idx != player.idx):
+        while idx != player.idx:
             ret.append(self.players[idx])
             idx = self.next_player_idx(idx)
         return ret
@@ -180,7 +186,7 @@ class GameState(object):
         pileout_count = 0
         for _, pile in self.supply_piles.items():
             if pile.card.name == "Province" and pile.qty == 0:
-                province_pilout = True
+                province_pileout = True
             if pile.qty == 0:
                 pileout_count += 1
         return pileout_count >= 3 or province_pileout
@@ -195,4 +201,3 @@ class GameState(object):
                 winners.append(player)
 
         return winners
-

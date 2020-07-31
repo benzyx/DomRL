@@ -24,6 +24,7 @@ class StdinAgent(Agent):
         while True:
             user_input = input()
             if user_input == "?":
+                state.event_log.print(player)
                 print(state)
             else:
                 ans = list(map(lambda x: int(x.strip()), user_input.split(',')))

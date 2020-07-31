@@ -2,12 +2,14 @@ from engine.card import *
 from engine.util import *
 from engine.state_funcs import *
 
+
 class Move(object):
     """
     An Move is an Action that a player can take.
 
     Must implement do(game_state), which is called when the player selects that Move.
     """
+
     def __init__(self):
         return
 
@@ -15,7 +17,7 @@ class Move(object):
         return "Unimplemented string for Move."
 
     def do(self, state):
-        raise "Move does not implement do."
+        raise Exception("Move does not implement do.")
 
 
 class Decision(object):
@@ -31,6 +33,7 @@ class Decision(object):
     - prompt: str, The string that explains to Agent when given this decision.
 
     """
+
     def __init__(
             self,
             moves,
@@ -61,6 +64,7 @@ class ActionPhaseDecision(Decision):
 
         super().__init__(moves, player, prompt="Action Phase, choose card to play.")
 
+
 class TreasurePhaseDecision(Decision):
 
     def __init__(self, player):
@@ -82,8 +86,8 @@ class BuyPhaseDecision(Decision):
 
         for card_name, supply_pile in state.supply_piles.items():
             if (supply_pile.qty > 0
-                and player.coins >= supply_pile.card.cost
-                and player.buys > 0):
+                    and player.coins >= supply_pile.card.cost
+                    and player.buys > 0):
                 moves.append(BuyCard(card_name))
 
         super().__init__(moves, player, prompt="Buy Phase, choose card to buy.")
@@ -102,18 +106,18 @@ class ChooseCardsDecision(Decision):
     Decision for choosing cards (from the players hand).
     """
     def __init__(self,
-        player,
-        num_select,
-        prompt,
-        filter_func=None,
-        optional=True,
-        card_container=None):
-        
+                 player,
+                 num_select,
+                 prompt,
+                 filter_func=None,
+                 optional=True,
+                 card_container=None):
+
         self.cards = []
         moves = []
 
         # By default, this decision chooses from the player's hand.
-        if card_container == None:
+        if card_container is None:
             card_container = player.hand
 
         for card_idx, card in enumerate(card_container):
@@ -128,11 +132,11 @@ class ChooseCardsDecision(Decision):
             prompt=prompt
         )
 
-
     class ChooseCard(Move):
         """
         Add a card to the context.
         """
+
         def __init__(self, card, decision):
             self.decision = decision
             self.card = card
@@ -150,6 +154,7 @@ class ChoosePileDecision(Decision):
 
     TODO(benzyx): maybe one day you need to select multiple piles?
     """
+
     def __init__(self, state, player, filter_func, prompt):
         moves = []
         for card_name, pile in state.supply_piles.items():
@@ -164,6 +169,7 @@ class ChoosePileDecision(Decision):
         """
         Add a card to the Decision.
         """
+
         def __init__(self, decision, pile):
             self.decision = decision
             self.pile = pile
@@ -177,11 +183,11 @@ class ChoosePileDecision(Decision):
             self.decision.pile = self.pile
 
 
-
-"""
-Player plays a card.
-"""
 class PlayCard(Move):
+    """
+    Player plays a card.
+    """
+
     def __init__(self, card):
         self.card = card
 
@@ -191,7 +197,12 @@ class PlayCard(Move):
     def do(self, state):
         play_card_from_hand(state, state.current_player, self.card)
 
+
 class BuyCard(Move):
+    """
+    Player buys a card.
+    """
+
     def __init__(self, card_name):
         self.card_name = card_name
 
@@ -202,46 +213,53 @@ class BuyCard(Move):
         buy_card(state, state.current_player, self.card_name)
 
 
-"""
-End Action Phase.
-"""
 class EndActionPhase(Move):
+    """
+    End Action Phase.
+    """
+
     def __str__(self):
         return "End Action Phase"
 
     def do(self, state):
-        assert(state.current_player.phase == TurnPhase.ACTION_PHASE)
+        assert (state.current_player.phase == TurnPhase.ACTION_PHASE)
         state.current_player.phase = TurnPhase.TREASURE_PHASE
 
-"""
-End Treasure Phase.
-"""
+
 class EndTreasurePhase(Move):
+    """
+    End Treasure Phase.
+    """
+
     def __str__(self):
         return "End Treasure Phase"
 
     def do(self, state):
-        assert(state.current_player.phase == TurnPhase.TREASURE_PHASE)
+        assert (state.current_player.phase == TurnPhase.TREASURE_PHASE)
         state.current_player.phase = TurnPhase.BUY_PHASE
 
-"""
-End Buy Phase
-"""
+
 class EndBuyPhase(Move):
+    """
+    End Buy Phase
+    """
+
     def __str__(self):
         return "End Buy Phase"
 
     def do(self, state):
-        assert(state.current_player.phase == TurnPhase.BUY_PHASE)
+        assert (state.current_player.phase == TurnPhase.BUY_PHASE)
         state.current_player.phase = TurnPhase.END_PHASE
 
-"""
-End Turn
-"""
+
 class EndTurn(Move):
+    """
+    End Turn
+    """
+
     def __str__(self):
         return "End Turn"
 
     def do(self, state):
-        assert(state.current_player.phase == TurnPhase.END_PHASE)
+        assert (state.current_player.phase == TurnPhase.END_PHASE)
         state.end_turn()

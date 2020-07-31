@@ -90,12 +90,12 @@ Smithy = Card(
     cost=4,
     add_cards=3)
 
-"""
-Discard cards in player's hand. Example: Poacher.
-"""
-
 
 class DiscardCardsEffect(effect.Effect):
+    """
+    Discard cards in player's hand. Example: Poacher.
+    """
+
     def __init__(self, num_cards, filter_func, optional):
         self.num_cards = num_cards
         self.filter_func = filter_func
@@ -209,7 +209,7 @@ class OpponentsGainCardEffect(effect.Effect):
 
     def run(self, state, player):
         for opp in state.other_players(player):
-            GainCardToDiscardPileEffect(self.card_name).run(state, player)
+            GainCardToDiscardPileEffect(self.card_name).run(state, opp)
 
 
 Militia = Card(
@@ -270,7 +270,7 @@ class TrashAndGainEffect(effect.Effect):
         game.process_decision(player.agent, decision, state)
         assert (len(decision.cards) == 1)
         trashed_card = decision.cards[0]
-        player_trash_card_from_hand(state, player, card)
+        player_trash_card_from_hand(state, player, trashed_card)
 
         filter_function = lambda pile: pile.card.cost <= trashed_card.cost + self.add_cost
         if self.gain_exact_cost:
@@ -300,7 +300,7 @@ class BanditAttackEffect(effect.Effect):
             treasures = []
             non_treasures = []
             for card in top_two_cards:
-                if card.isType(CardType.TREASURE):
+                if card.is_type(CardType.TREASURE):
                     treasures.append(card)
                 else:
                     non_treasures.append(card)
@@ -308,12 +308,12 @@ class BanditAttackEffect(effect.Effect):
             # If there are two treasures:
             if len(treasures) == 2:
                 decision = dec.ChooseCardsDecision(
-                    opp,
-                    1,
-                    "Select a card to trash from enemy Bandit.",
+                    player=opp,
+                    num_select=1,
+                    prompt="Select a card to trash from enemy Bandit.",
                     filter_func=None,
                     optional=False,
-                    card_container=treasures
+                    card_container=treasures,
                 )
 
                 game.process_decision(opp.agent, decision, state)
@@ -340,16 +340,31 @@ Bandit = Card(
 )
 
 """
+def throne_fn(state, player):
+    
+
 ThroneRoom = Card(
     name="Throne Room",
     types=[CardType.ACTION],
     cost=4,
-    effect_list=[Throne(2)],
+    effect_fn=throne_fn,
 )
 
 
+Merchant = Card(
+    name="Merchant",
+    types=[CardType.ACTION],
+    cost=3,
+    add_cards=1,
+    add_actions=1,
+)
 
-
+Moneylender = Card(
+    name="Moneylender",
+    types=[CardType.ACTION],
+    cost=4,
+    effect_fn=moneylender_fn,
+)
 
 
 """
