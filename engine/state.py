@@ -1,7 +1,8 @@
 from random import shuffle
+from engine.util import TurnPhase
+import engine.cards.base as base
+import engine.logger as log
 
-from engine.context import *
-from engine.cards.base import *
 
 class Player(object):
     """
@@ -10,6 +11,7 @@ class Player(object):
     def __init__(self,
                  name,
                  idx,
+                 agent,
                  vp=None,
                  actions=None,
                  coins=None,
@@ -21,6 +23,7 @@ class Player(object):
                  ):
         self.name = name
         self.idx = idx
+        self.agent = agent
         self.vp = vp or 0
         self.actions = actions or 0
         self.coins = coins or 0
@@ -40,36 +43,41 @@ class Player(object):
         return self.name
 
     def cycle_shuffle(self):
-        assert(len(self.draw_pile) == 0)
+        """
+        Moves all cards from discard pile to draw_pile, and shuffles it.
+        """
+        assert (len(self.draw_pile) == 0)
         self.draw_pile = self.discard_pile
         self.discard_pile = []
         shuffle(self.draw_pile)
 
-    # TODO(ben): Refactor this to use draw_one() repeatedly.
-    def draw(self, num):
-
-        # Enough cards left to draw.
-        # We draw cards from the back of the list.
-        if len(self.draw_pile) >= num:
-            cards_to_draw = self.draw_pile[:num]
-            self.draw_pile = self.draw_pile[num:]
-            self.hand.extend(cards_to_draw)
-        else:
-            remaining = num - len(self.draw_pile)
-
-            self.hand.extend(self.draw_pile)
-            self.draw_pile = []
+    def draw_one(self):
+        if len(self.draw_pile) == 0:
             self.cycle_shuffle()
 
-            if len(self.draw_pile) > 0:
-                self.draw(remaining)
+        if len(self.draw_pile) >= 1:
+            return self.draw_pile.pop()
+        else:
+            return None
+
+    def draw(self, num):
+        cards = []
+        for i in range(num):
+            card = self.draw_one()
+            if card:
+                cards.append(card)
+        return cards
+
+    def draw_into_hand(self, num):
+        cards = self.draw(num)
+        self.hand.extend(cards)
 
     def clean_up(self):
         self.discard_pile.extend(self.play_area)
         self.discard_pile.extend(self.hand)
         self.play_area = []
         self.hand = []
-        self.draw(5)
+        self.draw_into_hand(5)
 
     def init_turn(self):
         self.actions = 1
@@ -93,49 +101,57 @@ class Player(object):
 
 
 class SupplyPile(object):
-    def __init__(self, card, qty, buyable = True):
+    def __init__(self, card, qty, buyable=True):
         self.card = card
         self.qty = qty
         self.buyable = buyable
+
+    def __str__(self):
+        return str(self.card)
+
 
 class GameState(object):
     """
     Keeps track of the game state.
     """
-    def __init__(self, num_players, players=None):
+
+    def __init__(self, agents, players=None):
         self.trash = []
+        self.event_log = log.EventLog(agents)
         self.turn = 0
-        self.players = players or [Player(f"Player {i+1}", i) for i in range(num_players)]
+        self.players = players or [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = 0
-        self.context_stack = [TurnContext(self)]
 
         """
         TODO(benzyx): Make supply piles handle mixed piles.
         """
         self.supply_piles = {
-            "Curse" : SupplyPile(Curse, 10),
-            "Estate" : SupplyPile(Estate, 8),
-            "Duchy" : SupplyPile(Duchy, 8),
-            "Province" : SupplyPile(Province, 8),
-            "Copper" : SupplyPile(Copper, 46),
-            "Silver" : SupplyPile(Silver, 30),
-            "Gold" : SupplyPile(Gold, 16),
+            "Curse": SupplyPile(base.Curse, 10),
+            "Estate": SupplyPile(base.Estate, 8),
+            "Duchy": SupplyPile(base.Duchy, 8),
+            "Province": SupplyPile(base.Province, 8),
+            "Copper": SupplyPile(base.Copper, 46),
+            "Silver": SupplyPile(base.Silver, 30),
+            "Gold": SupplyPile(base.Gold, 16),
 
             # Testing mode:
-            "Village" : SupplyPile(Village, 10),
-            "Laboratory" : SupplyPile(Laboratory, 10),
-            "Market" : SupplyPile(Market, 10),
-            "Festival" : SupplyPile(Festival, 10),
-            "Smithy" : SupplyPile(Smithy, 10),
-            "Militia" : SupplyPile(Militia, 10),
-            "Chapel" : SupplyPile(Chapel, 10),
-            "Witch" : SupplyPile(Witch, 10),
-            "Workshop" : SupplyPile(Workshop, 10),
+            "Village": SupplyPile(base.Village, 10),
+            "Laboratory": SupplyPile(base.Laboratory, 10),
+            "Market": SupplyPile(base.Market, 10),
+            "Festival": SupplyPile(base.Festival, 10),
+            "Smithy": SupplyPile(base.Smithy, 10),
+            "Militia": SupplyPile(base.Militia, 10),
+            "Chapel": SupplyPile(base.Chapel, 10),
+            "Witch": SupplyPile(base.Witch, 10),
+            "Workshop": SupplyPile(base.Workshop, 10),
+            "Bandit": SupplyPile(base.Bandit, 10),
+            "Remodel": SupplyPile(base.Remodel, 10),
+
         }
 
         if players is None:
             for player in self.players:
-                player.draw(5)
+                player.draw_into_hand(5)
 
         self.players[0].init_turn()
 
@@ -146,10 +162,11 @@ class GameState(object):
             ret += f"Supply pile contains {name}, {pile.qty} remaining.\n"
 
         # Who's turn it is.
-        ret += f"{self.current_player().name}'s turn!"
+        ret += f"{self.current_player.name}'s turn!"
 
         return ret
 
+    @property
     def current_player(self):
         return self.players[self.current_player_idx]
 
@@ -166,15 +183,15 @@ class GameState(object):
     def other_players(self, player):
         ret = []
         idx = self.next_player_idx(player.idx)
-        while (idx != player.idx):
+        while idx != player.idx:
             ret.append(self.players[idx])
             idx = self.next_player_idx(idx)
         return ret
 
     def end_turn(self):
-        self.current_player().clean_up()
+        self.current_player.clean_up()
         self.next_player_turn()
-        self.current_player().init_turn()
+        self.current_player.init_turn()
 
     def is_game_over(self):
         province_pileout = False
@@ -196,24 +213,3 @@ class GameState(object):
                 winners.append(player)
 
         return winners
-
-    def get_next_decision(self):
-        if len(self.context_stack) == 0:
-            raise Exception("Context stack is empty!")
-        context = self.context_stack[-1]
-        return context.get_decision()
-
-    def resolve_contexts(self):
-        while self.current_context().can_resolve:
-            result = self.current_context().resolve(self)
-            self.pop_context()
-            self.current_context().update(result)
-
-    def current_context(self):
-        return self.context_stack[-1]
-
-    def add_context(self, context):
-        self.context_stack.append(context)
-
-    def pop_context(self):
-        self.context_stack.pop()
