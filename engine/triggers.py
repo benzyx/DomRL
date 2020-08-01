@@ -17,5 +17,5 @@ class PlusCoinTrigger(Trigger):
         self.triggered = True
 
     @property
-    def remove(self):
+    def remove(self) -> bool:
         return self.one_time or self.triggered
