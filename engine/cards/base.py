@@ -323,7 +323,7 @@ class BanditAttackEffect(effect.Effect):
                 assert (len(treasures) == 0)
 
             elif len(treasures) == 1:
-                trash(treasures[0])
+                trash(state, opp, treasures[0], treasures)
                 assert (len(treasures) == 0)
 
             for card in non_treasures.copy():
@@ -365,7 +365,7 @@ ThroneRoom = Card(
 )
 
 
-class AddTriggersEffect(effect.Effect):
+class AddTriggerEffect(effect.Effect):
     def __init__(self, type, trigger):
         self.type = type
         self.trigger = trigger
@@ -383,17 +383,117 @@ Merchant = Card(
     cost=3,
     add_cards=1,
     add_actions=1,
-    effect_list=[AddTriggersEffect(Silver, PlusCoinTrigger(False))]
+    effect_list=[AddTriggerEffect(Silver, PlusCoinTrigger(False))]
 )
 
 
-"""
+class MoneyLenderEffect(effect.Effect):
+    def run(self, state, player):
+        decision = dec.ChooseCardsDecision(
+            player=player,
+            num_select=1,
+            prompt="You may trash a copper from your hand for +3 coins",
+            filter_func=lambda card: card.is_card(Copper),
+            optional=True,
+        )
+
+        process_decision(player.agent, decision, state)
+
+        if decision.cards:
+            trash(state, player, decision.cards[0], player.hand)
+            player.coins += 3
+
+
+
 Moneylender = Card(
     name="Moneylender",
     types=[CardType.ACTION],
     cost=4,
-    effect_fn=moneylender_fn,
+    effect_list=[MoneylenderEffect()],
 )
 
 
+"""
+Artisan = Card(
+    name="Artisan",
+    types=[CardType.ACTION],
+    cost=6,
+    effect_list=[],
+)
+
+
+Sentry = Card(
+    name="Sentry",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Mine = Card(
+    name="Mine",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Library = Card(
+    name="Library",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Sentry = Card(
+    name="Sentry",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+CouncilRoom = Card(
+    name="Council Room",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Bureaucrat = Card(
+    name="Bureaucrat",
+    types=[CardType.ACTION],
+    cost=4,
+    effect_list=[],
+)
+
+
+Vassal = Card(
+    name="Vassal",
+    types=[CardType.ACTION],
+    cost=3,
+    coins=2,
+    effect_list=[],
+)
+
+
+Harbinger = Card(
+    name="Harbinger",
+    types=[CardType.ACTION],
+    cost=3,
+    add_cards=1,
+    add_actions=1,
+    effect_list=[],
+)
+
+
+Moat = Card(
+    name="Moat",
+    types=[CardType.ACTION],
+    cost=2,
+    add_cards=2,
+    effect_list=[],
+)
 """
