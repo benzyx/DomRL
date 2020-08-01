@@ -8,20 +8,34 @@ class Player(object):
     """
     Player State Object.
     """
-
-    def __init__(self, name, idx, agent):
+    def __init__(self,
+                 name,
+                 idx,
+                 agent,
+                 vp=None,
+                 actions=None,
+                 coins=None,
+                 buys=None,
+                 draw_pile=None,
+                 discard_pile=None,
+                 hand=None,
+                 play_area=None,
+                 trigger_state=None,
+                 ):
         self.name = name
         self.idx = idx
         self.agent = agent
-        self.vp = 0
-        self.actions = 0
-        self.coins = 0
-        self.buys = 0
-        self.draw_pile = [base.Copper for _ in range(7)] + [base.Estate for _ in range(3)]
-        self.discard_pile = []
-        self.hand = []
-        self.play_area = []
+        self.vp = vp or 0
+        self.actions = actions or 0
+        self.coins = coins or 0
+        self.buys = buys or 0
+        self.draw_pile = draw_pile or \
+            [base.Copper for _ in range(7)] + [base.Estate for _ in range(3)]
+        self.discard_pile = discard_pile or []
+        self.hand = hand or []
+        self.play_area = play_area or []
         self.phase = TurnPhase.END_PHASE
+        self.trigger_state = trigger_state or {}
 
         shuffle(self.draw_pile)
 
@@ -66,6 +80,7 @@ class Player(object):
         self.discard_pile.extend(self.hand)
         self.play_area = []
         self.hand = []
+        self.trigger_state = {}
         self.draw_into_hand(5)
 
     def init_turn(self):
@@ -104,11 +119,11 @@ class GameState(object):
     Keeps track of the game state.
     """
 
-    def __init__(self, agents):
+    def __init__(self, agents, players=None):
         self.trash = []
         self.event_log = log.EventLog(agents)
         self.turn = 0
-        self.players = [Player(f"Player {i + 1}", i, agent) for i, agent in enumerate(agents)]
+        self.players = players or [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = 0
 
         """
@@ -138,8 +153,9 @@ class GameState(object):
 
         }
 
-        for player in self.players:
-            player.draw_into_hand(5)
+        if players is None:
+            for player in self.players:
+                player.draw_into_hand(5)
 
         self.players[0].init_turn()
 

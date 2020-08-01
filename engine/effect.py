@@ -8,7 +8,7 @@ Must implement:
 run(state, player) -> None
 """
 class Effect(object):
-    def __init__():
+    def __init__(self):
         pass
 
     def run(self, state, player):

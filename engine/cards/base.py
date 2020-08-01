@@ -1,9 +1,11 @@
 from engine.card import Card, CardType
+from engine.triggers import PlusCoinTrigger
+from engine.process_decision import process_decision
 from engine.state_funcs import *
 
 import engine.decision as dec
 import engine.effect as effect
-import engine.game as game
+
 
 """
 Implementations of base treasure and cards.
@@ -113,7 +115,7 @@ class DiscardCardsEffect(effect.Effect):
                                            filter_func=self.filter_func,
                                            optional=self.optional)
 
-        game.process_decision(player.agent, decision, state)
+        process_decision(player.agent, decision, state)
 
         for card in decision.cards:
             player_discard_card_from_hand(state, player, card)
@@ -138,7 +140,7 @@ class DiscardDownToEffect(effect.Effect):
                                            filter_func=None,
                                            optional=True)
 
-        game.process_decision(player.agent, decision, state)
+        process_decision(player.agent, decision, state)
 
         for card in decision.cards:
             player_discard_card_from_hand(state, player, card)
@@ -162,7 +164,7 @@ class TrashCardsEffect(effect.Effect):
                                            filter_func=self.filter_func,
                                            optional=self.optional)
 
-        game.process_decision(player.agent, decision, state)
+        process_decision(player.agent, decision, state)
 
         for card in decision.cards:
             player_trash_card_from_hand(state, player, card)
@@ -219,7 +221,6 @@ Militia = Card(
     coins=2,
     effect_list=[OpponentsDiscardDownToEffect(3)])
 
-# TODO(benzyx): add vp_func attribute or something.
 Gardens = Card(
     name="Gardens",
     types=[CardType.VICTORY],
@@ -267,7 +268,7 @@ class TrashAndGainEffect(effect.Effect):
                                            filter_func=None,
                                            optional=False)
 
-        game.process_decision(player.agent, decision, state)
+        process_decision(player.agent, decision, state)
         assert (len(decision.cards) == 1)
         trashed_card = decision.cards[0]
         player_trash_card_from_hand(state, player, trashed_card)
@@ -316,17 +317,33 @@ class BanditAttackEffect(effect.Effect):
                     card_container=treasures,
                 )
 
-                game.process_decision(opp.agent, decision, state)
+                process_decision(opp.agent, decision, state)
                 trash(state, opp, decision.cards[0], treasures)
                 discard(state, opp, treasures[0], treasures)
                 assert (len(treasures) == 0)
 
             elif len(treasures) == 1:
-                trash(treasures[0])
+                trash(state, opp, treasures[0], treasures)
                 assert (len(treasures) == 0)
 
             for card in non_treasures.copy():
                 discard(state, opp, card, non_treasures)
+
+
+class PlayCardTwiceEffect(effect.Effect):
+    def run(self, state, player):
+        decision = dec.ChooseCardsDecision(
+            player=player,
+            num_select=1,
+            prompt="You may choose an action card from your hand to play twice",
+            filter_func=lambda card: card.is_type(CardType.ACTION),
+            optional=True,
+        )
+
+        process_decision(player.agent, decision, state)
+
+        if decision.cards:
+            play_card_twice(state, player, decision.cards[0], player.hand)
 
 
 Bandit = Card(
@@ -339,16 +356,25 @@ Bandit = Card(
     ]
 )
 
-"""
-def throne_fn(state, player):
-    
 
 ThroneRoom = Card(
     name="Throne Room",
     types=[CardType.ACTION],
     cost=4,
-    effect_fn=throne_fn,
+    effect_list=[PlayCardTwiceEffect()],
 )
+
+
+class AddTriggerEffect(effect.Effect):
+    def __init__(self, type, trigger):
+        self.type = type
+        self.trigger = trigger
+
+    def run(self, state, player):
+        if self.type in player.trigger_state:
+            player.trigger_state[self.type].append(self.trigger)
+        else:
+            player.trigger_state[self.type] = [self.trigger]
 
 
 Merchant = Card(
@@ -357,14 +383,117 @@ Merchant = Card(
     cost=3,
     add_cards=1,
     add_actions=1,
+    effect_list=[AddTriggerEffect(str(Silver), PlusCoinTrigger(False))]
 )
+
+
+class MoneyLenderEffect(effect.Effect):
+    def run(self, state, player):
+        decision = dec.ChooseCardsDecision(
+            player=player,
+            num_select=1,
+            prompt="You may trash a copper from your hand for +3 coins",
+            filter_func=lambda card: card.is_card(Copper),
+            optional=True,
+        )
+
+        process_decision(player.agent, decision, state)
+
+        if decision.cards:
+            trash(state, player, decision.cards[0], player.hand)
+            player.coins += 3
+
+
 
 Moneylender = Card(
     name="Moneylender",
     types=[CardType.ACTION],
     cost=4,
-    effect_fn=moneylender_fn,
+    effect_list=[MoneylenderEffect()],
 )
 
 
+"""
+Artisan = Card(
+    name="Artisan",
+    types=[CardType.ACTION],
+    cost=6,
+    effect_list=[],
+)
+
+
+Sentry = Card(
+    name="Sentry",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Mine = Card(
+    name="Mine",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Library = Card(
+    name="Library",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Sentry = Card(
+    name="Sentry",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+CouncilRoom = Card(
+    name="Council Room",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_list=[],
+)
+
+
+Bureaucrat = Card(
+    name="Bureaucrat",
+    types=[CardType.ACTION],
+    cost=4,
+    effect_list=[],
+)
+
+
+Vassal = Card(
+    name="Vassal",
+    types=[CardType.ACTION],
+    cost=3,
+    coins=2,
+    effect_list=[],
+)
+
+
+Harbinger = Card(
+    name="Harbinger",
+    types=[CardType.ACTION],
+    cost=3,
+    add_cards=1,
+    add_actions=1,
+    effect_list=[],
+)
+
+
+Moat = Card(
+    name="Moat",
+    types=[CardType.ACTION],
+    cost=2,
+    add_cards=2,
+    effect_list=[],
+)
 """

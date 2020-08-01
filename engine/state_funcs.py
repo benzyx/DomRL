@@ -1,3 +1,5 @@
+import numpy as np
+
 from engine.card import CardType
 import engine.logger as log
 
@@ -29,6 +31,39 @@ def play(state, player, card, container):
     container.pop(card_idx)
     player.play_area.append(card)
     card.play(state, player)
+    apply_triggers(player, card)
+
+
+def play_card_twice(state, player, card, container):
+    for _ in range(2):
+        state.event_log.add_event(log.PlayEvent(player, card))
+    card_idx = container.index(card)
+    container.pop(card_idx)
+    player.play_area.append(card)
+    card.play(state, player)
+    apply_triggers(player, card)
+    card.play(state, player)
+    apply_triggers(player, card)
+
+
+def apply_triggers(player, card):
+    for trigger_type, triggers in player.trigger_state.items():
+        """
+        TODO (henry-prior): can we make specific cards inherit from the `Card`
+            class instead? That way we can make the `is_type()` support things
+            like:
+            ```
+            card = Silver()
+            card.is_type(Silver) # True
+            ```
+        """
+        if card.is_card(trigger_type) or card.is_type(trigger_type):
+            remove_idxs = []
+            for idx, trigger in enumerate(triggers):
+                trigger.apply(state, player)
+                if trigger.remove: remove_idxs.append(idx)
+
+            triggers = list(np.delete(triggers, remove_idxs))
 
 
 """

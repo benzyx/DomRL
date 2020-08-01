@@ -101,6 +101,18 @@ class EndPhaseDecision(Decision):
         super().__init__(moves, player, prompt="End Turn")
 
 
+class NullMove(Move):
+    """
+    Take no action (used for optional decisions)
+    """
+
+    def __str__(self):
+        return 'Choose: None'
+
+    def do(self):
+        pass
+
+
 class ChooseCardsDecision(Decision):
     """
     Decision for choosing cards (from the players hand).
@@ -119,6 +131,9 @@ class ChooseCardsDecision(Decision):
         # By default, this decision chooses from the player's hand.
         if card_container is None:
             card_container = player.hand
+
+        if optional:
+            moves.append(NullMove())
 
         for card_idx, card in enumerate(card_container):
             if filter_func is None or filter_func(card):
