@@ -11,7 +11,7 @@ from enum import Enum
 
 class Game(object):
     def __init__(self, agents, players=None):
-        self.state = GameState(len(agents), players=players)
+        self.state = GameState(agents, players=players)
         self.agents = agents
 
     def run(self):
