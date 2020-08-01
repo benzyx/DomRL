@@ -383,7 +383,7 @@ Merchant = Card(
     cost=3,
     add_cards=1,
     add_actions=1,
-    effect_list=[AddTriggerEffect(Silver, PlusCoinTrigger(False))]
+    effect_list=[AddTriggerEffect(str(Silver), PlusCoinTrigger(False))]
 )
 
 
