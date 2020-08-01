@@ -28,7 +28,8 @@ class Player(object):
         self.actions = actions or 0
         self.coins = coins or 0
         self.buys = buys or 0
-        self.draw_pile = draw_pile or [Copper for _ in range(7)] + [Estate for _ in range(3)]
+        self.draw_pile = draw_pile or \
+            [base.Copper for _ in range(7)] + [base.Estate for _ in range(3)]
         self.discard_pile = discard_pile or []
         self.hand = hand or []
         self.play_area = play_area or []

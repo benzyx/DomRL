@@ -31,6 +31,16 @@ def play(state, player, card, container):
     card.play(state, player)
 
 
+def play_card_twice(state, player, card, container):
+    for _ in range(2):
+        state.event_log.add_event(log.PlayEvent(player, card))
+    card_idx = container.index(card)
+    container.pop(card_idx)
+    player.play_area.append(card)
+    card.play(state, player)
+    card.play(state, player)
+
+
 """
 These apply the effect to a card in a player's hand.
 
