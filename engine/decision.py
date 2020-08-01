@@ -106,6 +106,9 @@ class NullMove(Move):
     Take no action (used for optional decisions)
     """
 
+    def __str__(self):
+        return 'Choose: None'
+
     def do(self):
         pass
 
