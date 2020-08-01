@@ -136,6 +136,10 @@ class GameState(object):
             "Bandit": SupplyPile(base.Bandit, 10),
             "Remodel": SupplyPile(base.Remodel, 10),
 
+
+            "Throne Room": SupplyPile(base.ThroneRoom, 10),
+            "Moneylender": SupplyPile(base.Moneylender, 10),
+            "Poacher": SupplyPile(base.Poacher, 10),
         }
 
         for player in self.players:
@@ -181,14 +185,16 @@ class GameState(object):
         self.next_player_turn()
         self.current_player.init_turn()
 
-    def is_game_over(self):
-        province_pileout = False
-        pileout_count = 0
+    def empty_piles(self):
+        pileouts = []
         for _, pile in self.supply_piles.items():
-            if pile.card.name == "Province" and pile.qty == 0:
-                province_pileout = True
             if pile.qty == 0:
-                pileout_count += 1
+                pileouts.append(pile)
+        return pileouts
+
+    def is_game_over(self):
+        province_pileout = self.supply_piles["Province"].qty == 0
+        pileout_count = len(self.empty_piles())
         return pileout_count >= 3 or province_pileout
 
     def get_winners(self):

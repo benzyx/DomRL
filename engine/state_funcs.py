@@ -23,12 +23,16 @@ def topdeck(state, player, card, container):
     player.deck.append(card)
 
 
-def play(state, player, card, container):
+def play_inplace(state, player, card):
     state.event_log.add_event(log.PlayEvent(player, card))
+    card.play(state, player)
+
+
+def play(state, player, card, container):
     card_idx = container.index(card)
     container.pop(card_idx)
     player.play_area.append(card)
-    card.play(state, player)
+    play_inplace(state, player, card)
 
 
 """

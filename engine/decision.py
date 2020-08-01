@@ -1,4 +1,4 @@
-from engine.card import *
+import engine.game as game
 from engine.util import *
 from engine.state_funcs import *
 
@@ -9,9 +9,6 @@ class Move(object):
 
     Must implement do(game_state), which is called when the player selects that Move.
     """
-
-    def __init__(self):
-        return
 
     def __str__(self):
         return "Unimplemented string for Move."
@@ -105,6 +102,7 @@ class ChooseCardsDecision(Decision):
     """
     Decision for choosing cards (from the players hand).
     """
+
     def __init__(self,
                  player,
                  num_select,
@@ -148,6 +146,22 @@ class ChooseCardsDecision(Decision):
             self.decision.cards.append(self.card)
 
 
+def choose_cards(state, player, num_select, prompt, filter_func, optional, card_container):
+    """
+    Call this when you need to prompt a player to choose a card.
+    """
+    decision = ChooseCardsDecision(
+        player=player,
+        num_select=num_select,
+        prompt=prompt,
+        filter_func=filter_func,
+        optional=optional,
+        card_container=card_container,
+    )
+    game.process_decision(player.agent, decision, state)
+    return decision.cards
+
+
 class ChoosePileDecision(Decision):
     """
     Decision for choosing one supply pile.
@@ -178,8 +192,6 @@ class ChoosePileDecision(Decision):
             return f"Choose: {self.pile.card.name} pile"
 
         def do(self, state):
-            print("DOING THE CHOOSEPILE MOVE!")
-            print(self.decision)
             self.decision.pile = self.pile
 
 

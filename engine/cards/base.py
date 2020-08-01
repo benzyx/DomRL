@@ -289,44 +289,40 @@ Remodel = Card(
 )
 
 
-class BanditAttackEffect(effect.Effect):
-    def __init__(self):
-        pass
+def bandit_attack_fn(state, player):
+    for opp in state.other_players(player):
+        top_two_cards = player.draw(2)
 
-    def run(self, state, player):
-        for opp in state.other_players(player):
-            top_two_cards = player.draw(2)
+        treasures = []
+        non_treasures = []
+        for card in top_two_cards:
+            if card.is_type(CardType.TREASURE):
+                treasures.append(card)
+            else:
+                non_treasures.append(card)
 
-            treasures = []
-            non_treasures = []
-            for card in top_two_cards:
-                if card.is_type(CardType.TREASURE):
-                    treasures.append(card)
-                else:
-                    non_treasures.append(card)
+        # If there are two treasures:
+        if len(treasures) == 2:
+            decision = dec.ChooseCardsDecision(
+                player=opp,
+                num_select=1,
+                prompt="Select a card to trash from enemy Bandit.",
+                filter_func=None,
+                optional=False,
+                card_container=treasures,
+            )
+            game.process_decision(opp.agent, decision, state)
 
-            # If there are two treasures:
-            if len(treasures) == 2:
-                decision = dec.ChooseCardsDecision(
-                    player=opp,
-                    num_select=1,
-                    prompt="Select a card to trash from enemy Bandit.",
-                    filter_func=None,
-                    optional=False,
-                    card_container=treasures,
-                )
+            trash(state, opp, decision.cards[0], treasures)
+            discard(state, opp, treasures[0], treasures)
+            assert (len(treasures) == 0)
 
-                game.process_decision(opp.agent, decision, state)
-                trash(state, opp, decision.cards[0], treasures)
-                discard(state, opp, treasures[0], treasures)
-                assert (len(treasures) == 0)
+        elif len(treasures) == 1:
+            trash(treasures[0])
+            assert (len(treasures) == 0)
 
-            elif len(treasures) == 1:
-                trash(treasures[0])
-                assert (len(treasures) == 0)
-
-            for card in non_treasures.copy():
-                discard(state, opp, card, non_treasures)
+        for card in non_treasures.copy():
+            discard(state, opp, card, non_treasures)
 
 
 Bandit = Card(
@@ -334,14 +330,32 @@ Bandit = Card(
     types=[CardType.ACTION, CardType.ATTACK],
     cost=5,
     effect_list=[
-        GainCardToDiscardPileEffect("Gold"),
-        BanditAttackEffect(),
-    ]
+        GainCardToDiscardPileEffect("Gold")
+    ],
+    effect_fn=bandit_attack_fn,
 )
 
-"""
+
 def throne_fn(state, player):
-    
+    """
+    TODO(benzyx): make sure this still works when no action cards are in hand.
+    """
+    cards = dec.choose_cards(
+        state,
+        player,
+        num_select=1,
+        prompt="Select a card to play twice.",
+        filter_func=lambda card: card.is_type(CardType.ACTION),
+        optional=True,
+        card_container=player.hand,
+    )
+
+    if len(cards) > 0:
+        card = cards[0]
+        player.play_area.append(card)
+        play_inplace(state, player, card)
+        play_inplace(state, player, card)
+
 
 ThroneRoom = Card(
     name="Throne Room",
@@ -351,13 +365,21 @@ ThroneRoom = Card(
 )
 
 
-Merchant = Card(
-    name="Merchant",
-    types=[CardType.ACTION],
-    cost=3,
-    add_cards=1,
-    add_actions=1,
-)
+def moneylender_fn(state, player):
+    cards = dec.choose_cards(
+        state,
+        player,
+        num_select=1,
+        prompt="Trash a copper to gain +3 coins. Choose none to skip.",
+        filter_func=lambda card: card.name == "Copper",
+        optional=True,
+        card_container=player.hand,
+    )
+
+    if len(cards) > 0:
+        trash(state, player, cards[0], player.hand)
+        player.coins += 3
+
 
 Moneylender = Card(
     name="Moneylender",
@@ -366,5 +388,41 @@ Moneylender = Card(
     effect_fn=moneylender_fn,
 )
 
+
+def poacher_fn(state, player):
+    pileout_count = len(state.empty_piles())
+    if pileout_count > 0:
+        cards = dec.choose_cards(
+            state,
+            player,
+            num_select=2,
+            prompt=f"You must discard {pileout_count} card(s).",
+            filter_func=lambda card: card.name == "Copper",
+            optional=False,
+            card_container=player.hand,
+        )
+        for card in cards:
+            player_discard_card_from_hand(state, player, card)
+
+
+Poacher = Card(
+    name="Poacher",
+    types=[CardType.ACTION],
+    cost=4,
+    add_cards=1,
+    add_actions=1,
+    coins=1,
+    effect_fn=poacher_fn,
+)
+
+"""
+
+Merchant = Card(
+    name="Merchant",
+    types=[CardType.ACTION],
+    cost=3,
+    add_cards=1,
+    add_actions=1,
+)
 
 """

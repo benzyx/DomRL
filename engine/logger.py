@@ -46,6 +46,7 @@ class DiscardEvent(Event):
     """
     TODO(benzyx): Figure out how to handle visibility.
     """
+
     def __init__(self, player, card):
         self.player = player
         self.card = card
@@ -58,6 +59,7 @@ class TrashEvent(Event):
     """
     TODO(benzyx): Figure out how to handle visibility.
     """
+
     def __init__(self, player, card):
         self.player = player
         self.card = card
@@ -66,10 +68,19 @@ class TrashEvent(Event):
         return f"{self.player.name} trashes a {self.card}."
 
 
+class EnterContext(Event):
+    pass
+
+
+class ExitContext(Event):
+    pass
+
+
 class EventLog(object):
     """
     Event log.
     """
+
     def __init__(self, agents):
         self.agents = agents
         self.events = []
@@ -80,6 +91,14 @@ class EventLog(object):
 
     def print(self, player):
         print("=== Replaying log from beginning ===")
+        context_level = 0
         for event in self.events:
+            if isinstance(event, EnterContext):
+                context_level += 1
+            elif isinstance(event, ExitContext):
+                context_level -= 1
+
+            for i in range(context_level):
+                print("  ", end="")
             print(event)
         print("===             end              ===")
