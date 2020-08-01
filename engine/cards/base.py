@@ -1,9 +1,10 @@
 from engine.card import Card, CardType
+from engine.triggers import PlusCoinTrigger
+from engine.process_decision import process_decision
 from engine.state_funcs import *
 
 import engine.decision as dec
 import engine.effect as effect
-from engine.process_decision import process_decision
 
 
 """
@@ -363,15 +364,30 @@ ThroneRoom = Card(
     effect_list=[PlayCardTwiceEffect()],
 )
 
-"""
+
+class AddTriggersEffect(effect.Effect):
+    def __init__(self, type, trigger):
+        self.type = type
+        self.trigger = trigger
+
+    def run(self, state, player):
+        if self.type in player.trigger_state:
+            player.trigger_state[self.type].append(self.trigger)
+        else:
+            player.trigger_state[self.type] = [self.trigger]
+
+
 Merchant = Card(
     name="Merchant",
     types=[CardType.ACTION],
     cost=3,
     add_cards=1,
     add_actions=1,
+    effect_list=[AddTriggersEffect(Silver, PlusCoinTrigger(False))]
 )
 
+
+"""
 Moneylender = Card(
     name="Moneylender",
     types=[CardType.ACTION],
