@@ -146,10 +146,12 @@ class ChooseCardsDecision(Decision):
             self.decision.cards.append(self.card)
 
 
-def choose_cards(state, player, num_select, prompt, filter_func, optional, card_container):
+def choose_cards(state, player, num_select, prompt, filter_func=None, optional=True, card_container=None):
     """
     Call this when you need to prompt a player to choose a card.
     """
+    if card_container is None:
+        card_container = player.hand
     decision = ChooseCardsDecision(
         player=player,
         num_select=num_select,

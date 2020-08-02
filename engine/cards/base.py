@@ -107,15 +107,16 @@ class DiscardCardsEffect(effect.Effect):
         else:
             prompt = f"Discard exactly {self.num_cards} cards."
 
-        decision = dec.ChooseCardsDecision(player,
-                                           num_select=self.num_cards,
-                                           prompt=prompt,
-                                           filter_func=self.filter_func,
-                                           optional=self.optional)
+        cards = dec.choose_cards(
+            state=state,
+            player=player,
+            num_select=self.num_cards,
+            prompt=prompt,
+            filter_func=self.filter_func,
+            optional=self.optional,
+        )
 
-        game.process_decision(player.agent, decision, state)
-
-        for card in decision.cards:
+        for card in cards:
             player_discard_card_from_hand(state, player, card)
 
 
@@ -132,15 +133,16 @@ class DiscardDownToEffect(effect.Effect):
         prompt = f"Discard down to {self.num_cards_downto} cards."
         num_to_discard = len(player.hand) - self.num_cards_downto
 
-        decision = dec.ChooseCardsDecision(player,
-                                           num_select=num_to_discard,
-                                           prompt=prompt,
-                                           filter_func=None,
-                                           optional=True)
+        cards = dec.choose_cards(
+            state=state,
+            player=player,
+            num_select=num_to_discard,
+            prompt=prompt,
+            filter_func=None,
+            optional=False,
+        )
 
-        game.process_decision(player.agent, decision, state)
-
-        for card in decision.cards:
+        for card in cards:
             player_discard_card_from_hand(state, player, card)
 
 
@@ -156,15 +158,16 @@ class TrashCardsEffect(effect.Effect):
         else:
             prompt = f"Trash exactly {self.num_cards} cards."
 
-        decision = dec.ChooseCardsDecision(player,
-                                           num_select=self.num_cards,
-                                           prompt=prompt,
-                                           filter_func=self.filter_func,
-                                           optional=self.optional)
+        cards = dec.choose_cards(
+            state=state,
+            player=player,
+            num_select=self.num_cards,
+            prompt=prompt,
+            filter_func=self.filter_func,
+            optional=self.optional
+        )
 
-        game.process_decision(player.agent, decision, state)
-
-        for card in decision.cards:
+        for card in cards:
             player_trash_card_from_hand(state, player, card)
 
 
@@ -259,17 +262,17 @@ class TrashAndGainEffect(effect.Effect):
         self.gain_exact_cost = gain_exact_cost
 
     def run(self, state, player):
-        prompt = f"Choose a card to trash."
+        cards = dec.choose_cards(
+            state=state,
+            player=player,
+            num_select=1,
+            prompt=f"Choose a card to trash.",
+            filter_func=None,
+            optional=False
+        )
 
-        decision = dec.ChooseCardsDecision(player,
-                                           num_select=1,
-                                           prompt=prompt,
-                                           filter_func=None,
-                                           optional=False)
-
-        game.process_decision(player.agent, decision, state)
-        assert (len(decision.cards) == 1)
-        trashed_card = decision.cards[0]
+        assert (len(cards) == 1)
+        trashed_card = cards[0]
         player_trash_card_from_hand(state, player, trashed_card)
 
         filter_function = lambda pile: pile.card.cost <= trashed_card.cost + self.add_cost
@@ -303,7 +306,8 @@ def bandit_attack_fn(state, player):
 
         # If there are two treasures:
         if len(treasures) == 2:
-            decision = dec.ChooseCardsDecision(
+            cards = dec.choose_cards(
+                state=state,
                 player=opp,
                 num_select=1,
                 prompt="Select a card to trash from enemy Bandit.",
@@ -311,9 +315,8 @@ def bandit_attack_fn(state, player):
                 optional=False,
                 card_container=treasures,
             )
-            game.process_decision(opp.agent, decision, state)
 
-            trash(state, opp, decision.cards[0], treasures)
+            trash(state, opp, cards[0], treasures)
             discard(state, opp, treasures[0], treasures)
             assert (len(treasures) == 0)
 
@@ -345,14 +348,19 @@ def throne_fn(state, player):
         player,
         num_select=1,
         prompt="Select a card to play twice.",
-        filter_func=lambda card: card.is_type(CardType.ACTION),
+        filter_func=lambda _card: _card.is_type(CardType.ACTION),
         optional=True,
         card_container=player.hand,
     )
 
     if len(cards) > 0:
         card = cards[0]
+
+        # Refactor the moving of one container to another.
+        card_idx = player.hand.index(card)
+        player.hand.pop(card_idx)
         player.play_area.append(card)
+
         play_inplace(state, player, card)
         play_inplace(state, player, card)
 

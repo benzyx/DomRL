@@ -135,8 +135,6 @@ class GameState(object):
             "Workshop": SupplyPile(base.Workshop, 10),
             "Bandit": SupplyPile(base.Bandit, 10),
             "Remodel": SupplyPile(base.Remodel, 10),
-
-
             "Throne Room": SupplyPile(base.ThroneRoom, 10),
             "Moneylender": SupplyPile(base.Moneylender, 10),
             "Poacher": SupplyPile(base.Poacher, 10),
