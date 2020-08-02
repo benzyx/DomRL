@@ -8,8 +8,5 @@ Must implement:
 run(state, player) -> None
 """
 class Effect(object):
-    def __init__():
-        pass
-
     def run(self, state, player):
         raise Exception("Effect does not implement run!")

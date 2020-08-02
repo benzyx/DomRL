@@ -61,6 +61,18 @@ class Card(object):
     def is_type(self, card_type: CardType) -> bool:
         return card_type in self.types
 
+    def is_card(self, card: str) -> bool:
+        """
+        TODO (henry-prior): can we make specific cards inherit from the `Card`
+            class instead? That way we can make the `is_type()` support things
+            like:
+            ```
+            card = Silver()
+            card.is_type(Silver) # True
+            ```
+        """
+        return card == self.name
+
     def draw_cards(self, player, num: int):
         player.draw_into_hand(num)
 

@@ -1,11 +1,7 @@
-import random
-
 from engine.state import *
 from engine.decision import *
-from engine.agent import *
 from engine.util import TurnPhase
 
-from enum import Enum
 
 def process_decision(agent, decision, state):
 
@@ -23,9 +19,10 @@ def process_decision(agent, decision, state):
     for idx in move_indices:
         decision.moves[idx].do(state)
 
+
 class Game(object):
-    def __init__(self, agents):
-        self.state = GameState(agents)
+    def __init__(self, agents, players=None):
+        self.state = GameState(agents, players=players)
         self.agents = agents
 
     def run(self):
@@ -47,7 +44,6 @@ class Game(object):
                 decision = EndPhaseDecision(player)
             else:
                 raise Exception("TurnContext: Unknown current player phase")
-            
+
             # Print state of the board.
             process_decision(agent, decision, state)
-
