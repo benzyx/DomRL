@@ -1,10 +1,12 @@
+import engine.logger as log
+
 class Agent(object):
-    def choose(self, decision, state):
+    def choose(self, decision, state_view):
         return decision.moves[0]
 
 
 class StdinAgent(Agent):
-    def choose(self, decision, state):
+    def choose(self, decision, state_view):
 
         # Autoplay
         if len(decision.moves) == 1:
@@ -34,8 +36,12 @@ class StdinAgent(Agent):
             user_input = input()
 
             if user_input == "?":
-                state.event_log.print(player)
-                print(state)
+                log.print_dict_log(state_view.event_log)
+
+                # Refactor this to be somewhere else.
+                for _, pile in state_view.supply_piles.items():
+                    print(f"{pile.card_name}: {pile.qty} remaining.")
+
                 print(f" ==== Decision to be made by {player} ==== ")
                 print(f"Actions: {player.actions} | Buys: {player.buys} | Coins: {player.coins}")
                 print("Hand: ", list(map(str, player.hand)))
@@ -73,5 +79,5 @@ class StdinAgent(Agent):
 
 
 class BigMoneyAgent(Agent):
-    def choose(self, decision, state):
+    def choose(self, decision, state_view):
         pass

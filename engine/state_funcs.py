@@ -1,5 +1,3 @@
-import numpy as np
-
 from engine.card import CardType
 import engine.logger as log
 

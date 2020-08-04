@@ -1,79 +1,144 @@
+from enum import Enum
+
+
+class EventType(Enum):
+    CUSTOM = 0
+    BUY = 1
+    GAIN = 2
+    PLAY = 3
+    DRAW = 4
+    DISCARD = 5
+    TRASH = 6
+    TOPDECK = 7
+    CONTEXT = 8
+
+
+def get_action_word(event_type: EventType) -> str:
+    if event_type == EventType.BUY:
+        return "buys"
+    if event_type == EventType.GAIN:
+        return "gains"
+    if event_type == EventType.PLAY:
+        return "plays"
+    if event_type == EventType.DRAW:
+        return "draws"
+    if event_type == EventType.DISCARD:
+        return "discards"
+    if event_type == EventType.TRASH:
+        return "trashes"
+    if event_type == EventType.TOPDECK:
+        return "topdecks"
+    return ""
+
+
 class Event(object):
-    pass
+    def obfuscate(self, player):
+        raise NotImplementedError("Event does not implement hide_if_needed")
+
+    def to_dict(self):
+        raise NotImplementedError("Event does not implement to_dict")
 
 
-class BuyEvent(Event):
-    def __init__(self, player, card):
+class CardEvent(Event):
+    def __init__(self, event_type, player, card):
+        self.event_type = event_type
         self.player = player
         self.card = card
 
     def __str__(self):
-        return f"{self.player.name} buys a {self.card}."
+        action_word = get_action_word(self.event_type)
+        if self.card:
+            return f"{self.player.name} {action_word} a {self.card}."
+        else:
+            return f"{self.player.name} {action_word} a card."
+
+    # By default, do not hide the action at all.
+    def obfuscate(self, player):
+        return self
+
+    def to_dict(self):
+        return {
+            "type": self.event_type.name,
+            "player": self.player.name,
+            "card": self.card.name if self.card else None,
+            "str": str(self),
+        }
 
 
-class GainEvent(Event):
+class BuyEvent(CardEvent):
     def __init__(self, player, card):
-        self.player = player
-        self.card = card
-
-    def __str__(self):
-        return f"{self.player.name} gains a {self.card}."
+        super().__init__(EventType.BUY, player, card)
 
 
-class PlayEvent(Event):
+class GainEvent(CardEvent):
     def __init__(self, player, card):
-        self.player = player
-        self.card = card
-
-    def __str__(self):
-        return f"{self.player.name} plays a {self.card}."
+        super().__init__(EventType.GAIN, player, card)
 
 
-class DrawEvent(Event):
-    """
-    TODO(benzyx): Figure out how to handle visibility.
-    """
-
+class PlayEvent(CardEvent):
     def __init__(self, player, card):
-        self.player = player
-        self.card = card
-
-    def __str__(self):
-        return f"{self.player.name} draws a {self.card}."
+        super().__init__(EventType.PLAY, player, card)
 
 
-class DiscardEvent(Event):
-    """
-    TODO(benzyx): Figure out how to handle visibility.
-    """
-
+class DrawEvent(CardEvent):
     def __init__(self, player, card):
-        self.player = player
-        self.card = card
+        super().__init__(EventType.DRAW, player, card)
 
-    def __str__(self):
-        return f"{self.player.name} discards a {self.card}."
+    # Other players should not see the card being drawn.
+    def obfuscate(self, player):
+        if player != self.player:
+            return DrawEvent(self, player, None)
+        else:
+            return self
 
 
-class TrashEvent(Event):
-    """
-    TODO(benzyx): Figure out how to handle visibility.
-    """
-
+class DiscardEvent(CardEvent):
     def __init__(self, player, card):
-        self.player = player
-        self.card = card
+        super().__init__(EventType.DISCARD, player, card)
 
-    def __str__(self):
-        return f"{self.player.name} trashes a {self.card}."
+
+class TrashEvent(CardEvent):
+    def __init__(self, player, card):
+        super().__init__(EventType.TRASH, player, card)
 
 
 class EnterContext(Event):
-    pass
+    def obfuscate(self, player):
+        return self
+
+    def to_dict(self):
+        return {
+            "type": EventType.CONTEXT,
+            "value": 1,
+        }
 
 
 class ExitContext(Event):
-    pass
+    def obfuscate(self, player):
+        return self
+
+    def to_dict(self):
+        return {
+            "type": EventType.CONTEXT,
+            "value": -1,
+        }
+
+
+
+def print_dict_log(event_dict_list):
+    """
+    This function will be used to easily print out a list of Events in dict form.
+    """
+    print("=== Replaying log from beginning ===")
+    context_level = 0
+    for event in event_dict_list:
+        if event["type"] == EventType.CONTEXT:
+            context_level += event["value"]
+        else:
+            for i in range(context_level):
+                print("  ", end="")
+            print(event["str"])
+    print("===             end              ===")
 
 
 class EventLog(object):
@@ -102,3 +167,8 @@ class EventLog(object):
                 print("  ", end="")
             print(event)
         print("===             end              ===")
+
+    def hide_for_player(self, player):
+        return [event.obfuscate(player).to_dict() for event in self.events]
+
+

@@ -1,5 +1,4 @@
 from engine.card import Card, CardType
-from engine.triggers import PlusCoinTrigger
 from engine.state_funcs import *
 
 import engine.decision as dec
@@ -341,9 +340,7 @@ Bandit = Card(
 
 
 def throne_fn(state, player):
-    """
-    TODO(benzyx): make sure this still works when no action cards are in hand.
-    """
+
     cards = dec.choose_cards(
         state,
         player,
@@ -354,7 +351,7 @@ def throne_fn(state, player):
         card_container=player.hand,
     )
 
-    if len(cards) > 0:
+    if cards:
         card = cards[0]
 
         # Refactor the moving of one container to another.
@@ -407,7 +404,7 @@ def moneylender_fn(state, player):
         card_container=player.hand,
     )
 
-    if len(cards) > 0:
+    if cards:
         trash(state, player, cards[0], player.hand)
         player.coins += 3
 
@@ -524,7 +521,7 @@ Harbinger = Card(
 
 Moat = Card(
     name="Moat",
-    types=[CardType.ACTION],
+    types=[CardType.ACTION, CardType.REACTION],
     cost=2,
     add_cards=2,
     effect_list=[],

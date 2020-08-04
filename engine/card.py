@@ -1,8 +1,7 @@
 from enum import Enum
-from typing import List, Callable, Type
+from typing import List, Callable
 
 from .effect import Effect
-import engine.state as st
 
 
 class CardType(Enum):

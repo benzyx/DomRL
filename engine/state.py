@@ -20,7 +20,6 @@ class Player(object):
                  discard_pile=None,
                  hand=None,
                  play_area=None,
-                 trigger_state=None,
                  ):
         self.name = name
         self.idx = idx
@@ -35,7 +34,6 @@ class Player(object):
         self.hand = hand or []
         self.play_area = play_area or []
         self.phase = TurnPhase.END_PHASE
-        self.trigger_state = trigger_state or {}
 
         shuffle(self.draw_pile)
 
@@ -80,7 +78,6 @@ class Player(object):
         self.discard_pile.extend(self.hand)
         self.play_area = []
         self.hand = []
-        self.trigger_state = {}
         self.draw_into_hand(5)
 
     def init_turn(self):
@@ -96,11 +93,11 @@ class Player(object):
     def total_vp(self):
         total = self.vp
         for card in self.all_cards:
-            """
-            TODO(henry-prior): keep track of deck state as counter and pass
-                here (no change in deck state = no vp computations)
-            """
-            total += card.vp(self.all_cards)
+            total += card.vp_constant
+
+            # TODO(benzyx): vp_fn really shouldn't take all_cards...
+            if card.vp_fn:
+                total += card.vp_fn(self.all_cards)
         return total
 
 
