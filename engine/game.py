@@ -10,7 +10,7 @@ def process_decision(agent, decision, state):
     state_view = StateView(state, decision.player)
 
     # Get decision from agent, giving them the view of the state.
-    move_indices = agent.choose(decision, state_view)
+    move_indices = agent.policy(decision, state_view)
 
     # TODO(benzyx): Enforce that the indices are not repeated.
     if decision.optional:
