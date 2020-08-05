@@ -408,6 +408,32 @@ Poacher = Card(
     effect_fn=poacher_fn,
 )
 
+
+def cellar_fn(state, player):
+    chosen_cards = dec.choose_cards(
+        state,
+        player,
+        num_select=len(player.hand),
+        prompt="Discard as many cards as you would like to draw.",
+        filter_func=None,
+        optional=True,
+        card_container=player.hand,
+    )
+
+    num_discarded = len(chosen_cards)
+    for card in chosen_cards:
+        player_discard_card_from_hand(state, player, card)
+
+    player.draw_into_hand(num_discarded)
+
+
+Cellar = Card(
+    name="Cellar",
+    types=[CardType.ACTION],
+    cost=2,
+    effect_fn=cellar_fn,
+)
+
 """
 Artisan = Card(
     name="Artisan",

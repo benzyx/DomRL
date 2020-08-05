@@ -14,11 +14,8 @@ def process_event(state, event):
     #         trigger.apply(state)
 
     # Process all turn triggers (Merchant, Goons, etc).
-    print("Entry point reached.")
     for trigger in state.turn_triggers:
-        print("Processing a trigger.")
         if trigger.condition(event):
-            print("Trigger condition met!")
             trigger.apply(state)
 
 
