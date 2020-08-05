@@ -1,55 +1,14 @@
 from engine.card import Card, CardType
 from engine.state_funcs import *
+from engine.card import *
 
+import engine.supply as supply
 import engine.decision as dec
 import engine.effect as effect
 import engine.game as game
 import engine.trigger as trig
 
-"""
-Implementations of base treasure and cards.
-"""
-Copper = Card(
-    name="Copper",
-    types=[CardType.TREASURE],
-    cost=0,
-    coins=1)
-
-Silver = Card(
-    name="Silver",
-    types=[CardType.TREASURE],
-    cost=3,
-    coins=2)
-
-Gold = Card(
-    name="Gold",
-    types=[CardType.TREASURE],
-    cost=6,
-    coins=3)
-
-Curse = Card(
-    name="Curse",
-    types=[CardType.VICTORY],
-    cost=0,
-    vp_constant=-1)
-
-Estate = Card(
-    name="Estate",
-    types=[CardType.VICTORY],
-    cost=2,
-    vp_constant=1)
-
-Duchy = Card(
-    name="Duchy",
-    types=[CardType.VICTORY],
-    cost=5,
-    vp_constant=3)
-
-Province = Card(
-    name="Province",
-    types=[CardType.VICTORY],
-    cost=8,
-    vp_constant=6)
+SupplyPile = supply.SupplyPile
 
 """
 Base Expansion Dominion Cards.
@@ -534,3 +493,21 @@ Moat = Card(
 )
 
 """
+
+BaseKingdom = {
+    "Village": SupplyPile(Village, 10),
+    "Laboratory": SupplyPile(Laboratory, 10),
+    "Market": SupplyPile(Market, 10),
+    "Festival": SupplyPile(Festival, 10),
+    "Smithy": SupplyPile(Smithy, 10),
+    "Militia": SupplyPile(Militia, 10),
+    "Chapel": SupplyPile(Chapel, 10),
+    "Witch": SupplyPile(Witch, 10),
+    "Workshop": SupplyPile(Workshop, 10),
+    "Bandit": SupplyPile(Bandit, 10),
+    "Remodel": SupplyPile(Remodel, 10),
+    "Throne Room": SupplyPile(ThroneRoom, 10),
+    "Moneylender": SupplyPile(Moneylender, 10),
+    "Poacher": SupplyPile(Poacher, 10),
+    "Merchant": SupplyPile(Merchant, 10),
+}

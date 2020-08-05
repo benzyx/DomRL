@@ -124,7 +124,6 @@ class ExitContext(Event):
         }
 
 
-
 def print_dict_log(event_dict_list):
     """
     This function will be used to easily print out a list of Events in dict form.
@@ -154,21 +153,5 @@ class EventLog(object):
         self.events.append(event)
         print(event)
 
-    def print(self, player):
-        print("=== Replaying log from beginning ===")
-        context_level = 0
-        for event in self.events:
-            if isinstance(event, EnterContext):
-                context_level += 1
-            elif isinstance(event, ExitContext):
-                context_level -= 1
-
-            for i in range(context_level):
-                print("  ", end="")
-            print(event)
-        print("===             end              ===")
-
     def hide_for_player(self, player):
         return [event.obfuscate(player).to_dict() for event in self.events]
-
-

@@ -7,4 +7,3 @@ class Trigger:
 
     def apply(self, state):
         raise NotImplementedError('`Trigger` must be subclassed to be applied')
-

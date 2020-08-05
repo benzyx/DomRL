@@ -1,4 +1,4 @@
-from engine.state import *
+import engine.state as st
 from engine.decision import *
 from engine.util import TurnPhase
 from engine.state_view import StateView
@@ -25,8 +25,8 @@ def process_decision(agent, decision, state):
 
 
 class Game(object):
-    def __init__(self, agents, players=None):
-        self.state = GameState(agents, players=players)
+    def __init__(self, agents, players=None, kingdoms=None):
+        self.state = st.GameState(agents, players=players, kingdoms=kingdoms)
         self.agents = agents
 
     def run(self):

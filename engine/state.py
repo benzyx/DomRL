@@ -1,5 +1,7 @@
 from random import shuffle
-from engine.util import TurnPhase
+from .util import TurnPhase
+from .supply import choose_supply_from_kingdoms
+from .card import *
 import engine.cards.base as base
 import engine.logger as log
 
@@ -29,7 +31,7 @@ class Player(object):
         self.coins = coins or 0
         self.buys = buys or 0
         self.draw_pile = draw_pile or \
-            [base.Merchant for _ in range(7)] + [base.Silver for _ in range(3)]
+            [base.Merchant for _ in range(7)] + [Silver for _ in range(3)]
         self.discard_pile = discard_pile or []
         self.hand = hand or []
         self.play_area = play_area or []
@@ -101,22 +103,12 @@ class Player(object):
         return total
 
 
-class SupplyPile(object):
-    def __init__(self, card, qty, buyable=True):
-        self.card = card
-        self.qty = qty
-        self.buyable = buyable
-
-    def __str__(self):
-        return str(self.card)
-
-
 class GameState(object):
     """
     Keeps track of the game state.
     """
 
-    def __init__(self, agents, players=None):
+    def __init__(self, agents, players=None, kingdoms=None):
         self.trash = []
         self.event_log = log.EventLog(agents)
         self.turn = 0
@@ -127,32 +119,7 @@ class GameState(object):
         """
         TODO(benzyx): Make supply piles handle mixed piles.
         """
-        self.supply_piles = {
-            "Curse": SupplyPile(base.Curse, 10),
-            "Estate": SupplyPile(base.Estate, 8),
-            "Duchy": SupplyPile(base.Duchy, 8),
-            "Province": SupplyPile(base.Province, 8),
-            "Copper": SupplyPile(base.Copper, 46),
-            "Silver": SupplyPile(base.Silver, 30),
-            "Gold": SupplyPile(base.Gold, 16),
-
-            # Testing mode:
-            "Village": SupplyPile(base.Village, 10),
-            "Laboratory": SupplyPile(base.Laboratory, 10),
-            "Market": SupplyPile(base.Market, 10),
-            "Festival": SupplyPile(base.Festival, 10),
-            "Smithy": SupplyPile(base.Smithy, 10),
-            "Militia": SupplyPile(base.Militia, 10),
-            "Chapel": SupplyPile(base.Chapel, 10),
-            "Witch": SupplyPile(base.Witch, 10),
-            "Workshop": SupplyPile(base.Workshop, 10),
-            "Bandit": SupplyPile(base.Bandit, 10),
-            "Remodel": SupplyPile(base.Remodel, 10),
-            "Throne Room": SupplyPile(base.ThroneRoom, 10),
-            "Moneylender": SupplyPile(base.Moneylender, 10),
-            "Poacher": SupplyPile(base.Poacher, 10),
-            "Merchant": SupplyPile(base.Merchant, 10),
-        }
+        self.supply_piles = choose_supply_from_kingdoms(kingdoms)
 
         if players is None:
             for player in self.players:

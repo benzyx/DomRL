@@ -1,6 +1,5 @@
-import engine.logger as log
 import engine.state as st
-
+from .supply import SupplyPile
 
 class PlayerView(object):
     def __init__(self, player: st.Player, is_player: bool):
@@ -37,7 +36,7 @@ class PlayerView(object):
 
 
 class SupplyPileView(object):
-    def __init__(self, supply_pile: st.SupplyPile):
+    def __init__(self, supply_pile: SupplyPile):
         self.card_name = supply_pile.card.name
         self.qty = supply_pile.qty
         self.buyable = supply_pile.buyable
