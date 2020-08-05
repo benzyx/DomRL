@@ -147,14 +147,20 @@ class ChoosePileToGainEffect(effect.Effect):
 
     def run(self, state, player):
         prompt = f"Choose a pile to gain card from."
-
         decision = dec.ChoosePileDecision(state, player, self.filter_func, prompt)
-
-        print(decision)
-
         game.process_decision(player.agent, decision, state)
-
         gain_card_to_discard(state, player, decision.pile)
+
+
+class ChoosePileToGainToHandEffect(effect.Effect):
+    def __init__(self, filter_func):
+        self.filter_func = filter_func
+
+    def run(self, state, player):
+        prompt = f"Choose a pile to gain a card into your hand."
+        decision = dec.ChoosePileDecision(state, player, self.filter_func, prompt)
+        game.process_decision(player.agent, decision, state)
+        gain_card_to_hand(state, player, decision.pile)
 
 
 class OpponentsDiscardDownToEffect(effect.Effect):
@@ -434,6 +440,54 @@ Cellar = Card(
     effect_fn=cellar_fn,
 )
 
+
+def mine_fn(state, player):
+    trashed_card = dec.choose_cards(
+        state,
+        player,
+        num_select=1,
+        prompt="Choose a Treasure to upgrade.",
+        filter_func=lambda card: card.is_type(CardType.TREASURE),
+        optional=True,
+        card_container=player.hand,
+    )
+
+    if trashed_card:
+        trashed_card = trashed_card[0]
+        card_cost = trashed_card.cost
+        player_trash_card_from_hand(state, player, trashed_card)
+        ChoosePileToGainToHandEffect(
+            filter_func=lambda pile: pile.card.is_type(CardType.TREASURE) and pile.card.cost <= card_cost + 3
+        ).run(state, player)
+
+
+Mine = Card(
+    name="Mine",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_fn=mine_fn,
+)
+
+
+def vassal_fn(state, player):
+    cards = player.draw(1)
+    if cards:
+        drawn_card = cards[0]
+        if drawn_card.is_type(CardType.ACTION):
+            play(state, player, drawn_card, cards)
+        else:
+            discard(state, player, drawn_card, cards)
+
+
+Vassal = Card(
+    name="Vassal",
+    types=[CardType.ACTION],
+    cost=3,
+    coins=2,
+    effect_fn=vassal_fn,
+)
+
+
 """
 Artisan = Card(
     name="Artisan",
@@ -445,14 +499,6 @@ Artisan = Card(
 
 Sentry = Card(
     name="Sentry",
-    types=[CardType.ACTION],
-    cost=5,
-    effect_list=[],
-)
-
-
-Mine = Card(
-    name="Mine",
     types=[CardType.ACTION],
     cost=5,
     effect_list=[],
@@ -490,14 +536,6 @@ Bureaucrat = Card(
     effect_list=[],
 )
 
-
-Vassal = Card(
-    name="Vassal",
-    types=[CardType.ACTION],
-    cost=3,
-    coins=2,
-    effect_list=[],
-)
 
 
 Harbinger = Card(
