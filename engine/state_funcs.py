@@ -2,29 +2,50 @@ from engine.card import CardType
 import engine.logger as log
 
 
+def process_event(state, event):
+    """
+    This function is the entrypoint for all new events that are processed.
+    """
+    state.event_log.add_event(event)
+
+    # Process all reaction triggers.
+    # for trigger in state.reaction_triggers:
+    #     if trigger.condition(event):
+    #         trigger.apply(state)
+
+    # Process all turn triggers (Merchant, Goons, etc).
+    print("Entry point reached.")
+    for trigger in state.turn_triggers:
+        print("Processing a trigger.")
+        if trigger.condition(event):
+            print("Trigger condition met!")
+            trigger.apply(state)
+
+
+# The following functions are the entry points for most
 def trash(state, player, card, container):
-    state.event_log.add_event(log.TrashEvent(player, card))
+    process_event(state, log.TrashEvent(player, card))
     card_idx = container.index(card)
     container.pop(card_idx)
     state.trash.append(card)
 
 
 def discard(state, player, card, container):
-    state.event_log.add_event(log.DiscardEvent(player, card))
+    process_event(state, log.DiscardEvent(player, card))
     card_idx = container.index(card)
     container.pop(card_idx)
     player.discard_pile.append(card)
 
 
 def topdeck(state, player, card, container):
-    state.event_log.add_event(log.TopdeckEvent(player, card))
+    process_event(state, log.TopdeckEvent(player, card))
     card_idx = container.index(card)
     container.pop(card_idx)
     player.deck.append(card)
 
 
 def play_inplace(state, player, card):
-    state.event_log.add_event(log.PlayEvent(player, card))
+    process_event(state, log.PlayEvent(player, card))
     card.play(state, player)
     # apply_triggers(player, card)
 
@@ -34,26 +55,6 @@ def play(state, player, card, container):
     container.pop(card_idx)
     player.play_area.append(card)
     play_inplace(state, player, card)
-
-
-# def apply_triggers(player, card):
-#     for trigger_type, triggers in player.trigger_state.items():
-#         """
-#         TODO (henry-prior): can we make specific cards inherit from the `Card`
-#             class instead? That way we can make the `is_type()` support things
-#             like:
-#             ```
-#             card = Silver()
-#             card.is_type(Silver) # True
-#             ```
-#         """
-#         if card.is_card(trigger_type) or card.is_type(trigger_type):
-#             remove_idxs = []
-#             for idx, trigger in enumerate(triggers):
-#                 trigger.apply(state, player)
-#                 if trigger.remove: remove_idxs.append(idx)
-#
-#             triggers = list(np.delete(triggers, remove_idxs))
 
 
 """
@@ -74,21 +75,21 @@ def play_card_from_hand(state, player, card):
 
 def gain_card_to_discard(state, player, pile):
     if pile.qty > 0:
-        state.event_log.add_event(log.GainEvent(player, pile.card))
+        process_event(state, log.GainEvent(player, pile.card))
         player.discard_pile.append(pile.card)
         pile.qty -= 1
 
 
 def gain_card_to_hand(state, player, pile):
     if pile.qty > 0:
-        state.event_log.add_event(log.GainEvent(player, pile.card))
+        process_event(state, log.GainEvent(player, pile.card))
         player.hand.append(pile.card)
         pile.qty -= 1
 
 
 def gain_card_to_topdeck(state, player, pile):
     if pile.qty > 0:
-        state.event_log.add_event(log.GainEvent(player, pile.card))
+        process_event(state, log.GainEvent(player, pile.card))
         player.deck.append(pile.card)
         pile.qty -= 1
 
@@ -108,7 +109,7 @@ def buy_card(state, player, card_name):
     assert (player.coins >= card.cost)
     player.coins -= card.cost
     player.buys -= 1
-    state.event_log.add_event(log.BuyEvent(player, card))
+    process_event(state, log.BuyEvent(player, card))
     gain_card_to_discard(state, player, pile)
 
 

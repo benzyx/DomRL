@@ -4,6 +4,7 @@ from engine.state_funcs import *
 import engine.decision as dec
 import engine.effect as effect
 import engine.game as game
+import engine.trigger as trig
 
 """
 Implementations of base treasure and cards.
@@ -340,7 +341,6 @@ Bandit = Card(
 
 
 def throne_fn(state, player):
-
     cards = dec.choose_cards(
         state,
         player,
@@ -371,26 +371,32 @@ ThroneRoom = Card(
 )
 
 
-# class AddTriggerEffect(effect.Effect):
-#     def __init__(self, type, trigger):
-#         self.type = type
-#         self.trigger = trigger
-#
-#     def run(self, state, player):
-#         if self.type in player.trigger_state:
-#             player.trigger_state[self.type].append(self.trigger)
-#         else:
-#             player.trigger_state[self.type] = [self.trigger]
-#
-#
-# Merchant = Card(
-#     name="Merchant",
-#     types=[CardType.ACTION],
-#     cost=3,
-#     add_cards=1,
-#     add_actions=1,
-#     effect_list=[AddTriggerEffect(str(Silver), PlusCoinTrigger(False))]
-# )
+class MerchantTrigger(trig.Trigger):
+    def __init__(self, player):
+        self.triggered = False
+        self.player = player
+
+    def condition(self, event):
+        return event.event_type == log.EventType.PLAY and event.card == Silver
+
+    def apply(self, state):
+        if not self.triggered:
+            self.player.coins += 1
+            self.triggered = True
+
+
+def merchant_fn(state, player):
+    state.turn_triggers.append(MerchantTrigger(player))
+
+
+Merchant = Card(
+    name="Merchant",
+    types=[CardType.ACTION],
+    cost=3,
+    add_cards=1,
+    add_actions=1,
+    effect_fn=merchant_fn,
+)
 
 
 def moneylender_fn(state, player):

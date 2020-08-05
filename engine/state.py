@@ -29,7 +29,7 @@ class Player(object):
         self.coins = coins or 0
         self.buys = buys or 0
         self.draw_pile = draw_pile or \
-            [base.Copper for _ in range(7)] + [base.Estate for _ in range(3)]
+            [base.Merchant for _ in range(7)] + [base.Silver for _ in range(3)]
         self.discard_pile = discard_pile or []
         self.hand = hand or []
         self.play_area = play_area or []
@@ -122,6 +122,7 @@ class GameState(object):
         self.turn = 0
         self.players = players or [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = 0
+        self.turn_triggers = []
 
         """
         TODO(benzyx): Make supply piles handle mixed piles.
@@ -150,6 +151,7 @@ class GameState(object):
             "Throne Room": SupplyPile(base.ThroneRoom, 10),
             "Moneylender": SupplyPile(base.Moneylender, 10),
             "Poacher": SupplyPile(base.Poacher, 10),
+            "Merchant": SupplyPile(base.Merchant, 10),
         }
 
         if players is None:
@@ -194,6 +196,12 @@ class GameState(object):
     def end_turn(self):
         self.current_player.clean_up()
         self.next_player_turn()
+        if self.current_player_idx == 0:
+            self.turn += 1
+
+        # Reset all Triggers for this turn (such as Merchant).
+        self.turn_triggers = []
+
         self.current_player.init_turn()
 
     def empty_piles(self):

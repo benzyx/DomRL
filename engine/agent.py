@@ -1,5 +1,6 @@
 import engine.logger as log
 
+
 class Agent(object):
     def policy(self, decision, state_view):
         return decision.moves[0]

@@ -6,7 +6,7 @@ from engine.state_view import StateView
 
 def process_decision(agent, decision, state):
 
-    # Create a stateview object, to hide information in state from the agent.
+    # Create a StateView object, to hide information in state from the agent.
     state_view = StateView(state, decision.player)
 
     # Get decision from agent, giving them the view of the state.
