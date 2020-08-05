@@ -38,7 +38,7 @@ def topdeck(state, player, card, container):
     process_event(state, log.TopdeckEvent(player, card))
     card_idx = container.index(card)
     container.pop(card_idx)
-    player.deck.append(card)
+    player.draw_pile.append(card)
 
 
 def play_inplace(state, player, card):

@@ -102,6 +102,11 @@ class TrashEvent(CardEvent):
         super().__init__(EventType.TRASH, player, card)
 
 
+class TopdeckEvent(CardEvent):
+    def __init__(self, player, card):
+        super().__init__(EventType.TOPDECK, player, card)
+
+
 class EnterContext(Event):
     def obfuscate(self, player):
         return self

@@ -488,19 +488,50 @@ Vassal = Card(
 )
 
 
+def council_room_fn(state, player):
+    for opp in state.other_players(player):
+        opp.draw_into_hand(1)
+
+
+CouncilRoom = Card(
+    name="Council Room",
+    types=[CardType.ACTION],
+    cost=5,
+    add_cards=4,
+    add_buys=1,
+    effect_list=council_room_fn,
+)
+
+
+def artisan_fn(state, player):
+    ChoosePileToGainToHandEffect(
+        filter_func=lambda pile: (pile.card.cost <= 5)
+    ).run(state, player)
+
+    # Topdeck a card.
+    cards = dec.choose_cards(state,
+                             player,
+                             num_select=1,
+                             prompt="Choose a card to topdeck.",
+                             filter_func=None,
+                             optional=False)
+
+    if cards:
+        topdeck(state, player, cards[0], cards)
+
+
+Artisan = Card(
+    name="Artisan",
+    types=[CardType.ACTION],
+    cost=6,
+    effect_fn=artisan_fn,
+)
+
 """
 Artisan = Card(
     name="Artisan",
     types=[CardType.ACTION],
     cost=6,
-    effect_list=[],
-)
-
-
-Sentry = Card(
-    name="Sentry",
-    types=[CardType.ACTION],
-    cost=5,
     effect_list=[],
 )
 
@@ -515,14 +546,6 @@ Library = Card(
 
 Sentry = Card(
     name="Sentry",
-    types=[CardType.ACTION],
-    cost=5,
-    effect_list=[],
-)
-
-
-CouncilRoom = Card(
-    name="Council Room",
     types=[CardType.ACTION],
     cost=5,
     effect_list=[],
@@ -565,6 +588,7 @@ BaseKingdom = {
     "Festival": SupplyPile(Festival, 10),
     "Smithy": SupplyPile(Smithy, 10),
     "Militia": SupplyPile(Militia, 10),
+    "Gardens": SupplyPile(Gardens, 8),
     "Chapel": SupplyPile(Chapel, 10),
     "Witch": SupplyPile(Witch, 10),
     "Workshop": SupplyPile(Workshop, 10),
@@ -574,4 +598,8 @@ BaseKingdom = {
     "Moneylender": SupplyPile(Moneylender, 10),
     "Poacher": SupplyPile(Poacher, 10),
     "Merchant": SupplyPile(Merchant, 10),
+    "Cellar": SupplyPile(Cellar, 10),
+    "Mine": SupplyPile(Mine, 10),
+    "Vassal": SupplyPile(Vassal, 10),
+    "Council Room": SupplyPile(CouncilRoom, 10),
 }

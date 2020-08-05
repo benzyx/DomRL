@@ -149,8 +149,11 @@ def choose_cards(state, player, num_select, prompt, filter_func=None, optional=T
     """
     Call this when you need to prompt a player to choose a card.
     """
+
+    # By default, pick a card from player's hand.
     if card_container is None:
         card_container = player.hand
+
     decision = ChooseCardsDecision(
         player=player,
         num_select=num_select,
