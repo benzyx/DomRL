@@ -10,8 +10,10 @@ class StdinAgent(Agent):
     def policy(self, decision, state_view):
 
         # Autoplay
-        if len(decision.moves) == 1:
+        if not decision.optional and len(decision.moves) == 1:
             return [0]
+        if decision.optional and len(decision.moves) == 0:
+            return []
 
         player = decision.player
 

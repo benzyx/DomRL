@@ -558,6 +558,54 @@ Bureaucrat = Card(
     effect_fn=bureaucrat_fn,
 )
 
+
+def sentry_fn(state, player):
+    drawn_cards = player.draw(2)
+
+    # Choose trash.
+    trash_cards = dec.choose_cards(state,
+                                   player,
+                                   num_select=len(drawn_cards),
+                                   prompt="You may trash cards with Sentry.",
+                                   filter_func=None,
+                                   optional=True,
+                                   card_container=drawn_cards)
+    for card in trash_cards:
+        trash(state, player, card, container=drawn_cards)
+
+    # Choose discard.
+    discard_cards = dec.choose_cards(state,
+                                     player,
+                                     num_select=len(drawn_cards),
+                                     prompt="You may discard cards with Sentry.",
+                                     filter_func=None,
+                                     optional=True,
+                                     card_container=drawn_cards)
+    for card in discard_cards:
+        discard(state, player, card, container=drawn_cards)
+
+    # Choose order to topdeck.
+    topdeck_cards = dec.choose_cards(state,
+                                     player,
+                                     num_select=len(drawn_cards),
+                                     prompt="You may put cards back in any order with Sentry. Cards are topdecked in "
+                                            "order, so the card listed last is placed on top.",
+                                     filter_func=None,
+                                     optional=False,
+                                     card_container=drawn_cards)
+    for card in topdeck_cards:
+        topdeck(state, player, card, container=drawn_cards)
+
+
+Sentry = Card(
+    name="Sentry",
+    types=[CardType.ACTION],
+    cost=5,
+    add_cards=1,
+    add_actions=1,
+    effect_fn=sentry_fn,
+)
+
 """
 Library = Card(
     name="Library",
@@ -571,14 +619,6 @@ Sentry = Card(
     name="Sentry",
     types=[CardType.ACTION],
     cost=5,
-    effect_list=[],
-)
-
-
-Bureaucrat = Card(
-    name="Bureaucrat",
-    types=[CardType.ACTION],
-    cost=4,
     effect_list=[],
 )
 
@@ -623,4 +663,6 @@ BaseKingdom = {
     "Mine": SupplyPile(Mine, 10),
     "Vassal": SupplyPile(Vassal, 10),
     "Council Room": SupplyPile(CouncilRoom, 10),
+    "Artisan": SupplyPile(Artisan, 10),
+    "Bureaucrat": SupplyPile(Bureaucrat, 10),
 }
