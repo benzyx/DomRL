@@ -43,9 +43,9 @@ def topdeck(state, player, card, container):
 
 def play_inplace(state, player, card):
     process_event(state, log.PlayEvent(player, card))
+    process_event(state, log.EnterContext())
     card.play(state, player)
-    # apply_triggers(player, card)
-
+    process_event(state, log.ExitContext())
 
 def play(state, player, card, container):
     card_idx = container.index(card)
@@ -53,6 +53,9 @@ def play(state, player, card, container):
     player.play_area.append(card)
     play_inplace(state, player, card)
 
+
+def reveal(state, player, card):
+    process_event(state, log.RevealEvent(player, card))
 
 """
 These apply the effect to a card in a player's hand.
@@ -84,11 +87,16 @@ def gain_card_to_hand(state, player, pile):
         pile.qty -= 1
 
 
+
 def gain_card_to_topdeck(state, player, pile):
     if pile.qty > 0:
         process_event(state, log.GainEvent(player, pile.card))
-        player.deck.append(pile.card)
+        process_event(state, log.EnterContext())
+        process_event(state, log.TopdeckEvent(player, pile.card))
+        player.draw_pile.append(pile.card)
         pile.qty -= 1
+        process_event(state, log.ExitContext())
+
 
 
 def buy_card(state, player, card_name):
@@ -107,7 +115,10 @@ def buy_card(state, player, card_name):
     player.coins -= card.cost
     player.buys -= 1
     process_event(state, log.BuyEvent(player, card))
+    process_event(state, log.EnterContext())
     gain_card_to_discard(state, player, pile)
+    process_event(state, log.ExitContext())
+
 
 
 def player_discard_card_from_hand(state, player, card):

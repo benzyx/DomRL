@@ -10,7 +10,8 @@ class EventType(Enum):
     DISCARD = 5
     TRASH = 6
     TOPDECK = 7
-    CONTEXT = 8
+    REVEAL = 8
+    CONTEXT = 9
 
 
 def get_action_word(event_type: EventType) -> str:
@@ -28,6 +29,8 @@ def get_action_word(event_type: EventType) -> str:
         return "trashes"
     if event_type == EventType.TOPDECK:
         return "topdecks"
+    if event_type == EventType.REVEAL:
+        return "reveals"
     return ""
 
 
@@ -107,7 +110,16 @@ class TopdeckEvent(CardEvent):
         super().__init__(EventType.TOPDECK, player, card)
 
 
+class RevealEvent(CardEvent):
+    def __init__(self, player, card):
+        super().__init__(EventType.REVEAL, player, card)
+
+
 class EnterContext(Event):
+    def __init__(self):
+        self.event_type = EventType.CONTEXT
+        self.value = 1
+
     def obfuscate(self, player):
         return self
 
@@ -119,6 +131,10 @@ class EnterContext(Event):
 
 
 class ExitContext(Event):
+    def __init__(self):
+        self.event_type = EventType.CONTEXT
+        self.value = -1
+
     def obfuscate(self, player):
         return self
 
@@ -153,10 +169,17 @@ class EventLog(object):
     def __init__(self, agents):
         self.agents = agents
         self.events = []
+        self.context_level = 0
 
     def add_event(self, event):
         self.events.append(event)
-        print(event)
+
+        if event.event_type == EventType.CONTEXT:
+            self.context_level += event.value
+        else:
+            for i in range(self.context_level):
+                print("  ", end="")
+            print(event)
 
     def hide_for_player(self, player):
         return [event.obfuscate(player).to_dict() for event in self.events]

@@ -517,7 +517,7 @@ def artisan_fn(state, player):
                              optional=False)
 
     if cards:
-        topdeck(state, player, cards[0], cards)
+        topdeck(state, player, cards[0], player.hand)
 
 
 Artisan = Card(
@@ -527,15 +527,38 @@ Artisan = Card(
     effect_fn=artisan_fn,
 )
 
-"""
-Artisan = Card(
-    name="Artisan",
-    types=[CardType.ACTION],
-    cost=6,
-    effect_list=[],
+
+def bureaucrat_fn(state, player):
+    gain_card_to_topdeck(state, player, state.supply_piles["Silver"])
+    for opp in state.other_players(player):
+        victory_card_count = 0
+        for card in opp.hand:
+            if card.is_type(CardType.VICTORY):
+                victory_card_count += 1
+        if victory_card_count > 0:
+            topdeck_card = dec.choose_cards(
+                state,
+                player=opp,
+                num_select=1,
+                prompt="Choose a Victory Card to topdeck.",
+                filter_func=lambda card: card.is_type(CardType.VICTORY),
+                optional=False
+            )
+            if topdeck_card:
+                topdeck(state, opp, topdeck_card[0], opp.hand)
+        else:
+            for card in opp.hand:
+                reveal(state, opp, card)
+
+
+Bureaucrat = Card(
+    name="Bureaucrat",
+    types=[CardType.ACTION, CardType.ATTACK],
+    cost=4,
+    effect_fn=bureaucrat_fn,
 )
 
-
+"""
 Library = Card(
     name="Library",
     types=[CardType.ACTION],
@@ -558,8 +581,6 @@ Bureaucrat = Card(
     cost=4,
     effect_list=[],
 )
-
-
 
 Harbinger = Card(
     name="Harbinger",
