@@ -80,12 +80,11 @@ class DiscardCardsEffect(effect.Effect):
             player_discard_card_from_hand(state, player, card)
 
 
-"""
-Discard down to some number of cards in player's hand. Example: Militia.
-"""
-
 
 class DiscardDownToEffect(effect.Effect):
+    """
+    Discard down to some number of cards in player's hand. Example: Militia.
+    """
     def __init__(self, num_cards_downto):
         self.num_cards_downto = num_cards_downto
 

@@ -20,6 +20,11 @@ def choose_supply_from_kingdoms(kingdoms):
     keys = total_piles.keys()
 
     supply_keys = random.sample(keys, 10)
+
+    print("Starting game with following Supply piles:")
+    for card in supply_keys:
+        print(f"{card}")
+
     supply_piles = {
         "Curse": SupplyPile(Curse, 10),
         "Estate": SupplyPile(Estate, 8),
@@ -30,7 +35,10 @@ def choose_supply_from_kingdoms(kingdoms):
         "Gold": SupplyPile(Gold, 16),
     }
 
+
+
     for key in supply_keys:
         supply_piles[key] = total_piles[key]
+
 
     return supply_piles

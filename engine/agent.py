@@ -29,6 +29,7 @@ class StdinAgent(Agent):
         # TODO(benzyx): Refactor this into helper functions.
         choices = None
         while True:
+            print("Enter '?' to look at state and logs.")
             # Prompt how to make decision.
             if decision.optional:
                 print(f"Make up to {decision.num_select} choice(s), each separated by a comma, or enter for no "
@@ -36,6 +37,7 @@ class StdinAgent(Agent):
             else:
                 print(f"Make exactly {decision.num_select} choice(s), each separated by a comma, or enter for no "
                       f"selection.\n> ", end="")
+
             user_input = input()
 
             if user_input == "?":

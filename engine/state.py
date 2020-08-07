@@ -31,7 +31,7 @@ class Player(object):
         self.coins = coins or 0
         self.buys = buys or 0
         self.draw_pile = draw_pile or \
-            [base.Witch for _ in range(7)] + [base.Moat for _ in range(3)]
+            [Copper for _ in range(7)] + [Estate for _ in range(3)]
         self.discard_pile = discard_pile or []
         self.hand = hand or []
         self.play_area = play_area or []
@@ -65,6 +65,11 @@ class Player(object):
             return None
 
     def draw(self, num):
+        """
+        TODO(benzyx): Need to log this somehow.
+        I should move all of draw functionality over to state_funcs, probably.
+        A bit of a hassle :(
+        """
         cards = []
         for i in range(num):
             card = self.draw_one()
@@ -134,6 +139,9 @@ class GameState(object):
         self.players[0].init_turn()
 
     def __str__(self):
+        """
+        TODO(benzyx): This sucks right now. Should integrate this with StateView.
+        """
         ret = ""
         # Supply piles.
         for name, pile in self.supply_piles.items():

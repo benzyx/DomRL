@@ -31,6 +31,7 @@ class Game(object):
 
     def run(self):
         state = self.state
+
         while not state.is_game_over():
 
             player = state.current_player
