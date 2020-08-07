@@ -199,6 +199,56 @@ class ChoosePileDecision(Decision):
             self.decision.pile = self.pile
 
 
+def boolean_choice(state, player, prompt, yes_prompt, no_prompt):
+    decision = BooleanDecision(state, player, prompt, yes_prompt, no_prompt)
+    game.process_decision(player.agent, decision, state)
+    return decision.value
+
+
+class BooleanDecision(Decision):
+    """
+    Decision for choosing one of two options.
+
+    TODO(benzyx): maybe one day you need to select multiple piles?
+    """
+
+    def __init__(self, state, player, prompt, yes_prompt, no_prompt):
+        moves = [self.YesMove(self, yes_prompt), self.NoMove(self, no_prompt)]
+        self.value = None
+
+        super().__init__(moves, player, prompt=prompt)
+
+    class YesMove(Move):
+        """
+        User chooses yes.
+        """
+
+        def __init__(self, decision, prompt=None):
+            self.decision = decision
+            self.prompt = prompt or "Yes"
+
+        def __str__(self):
+            return self.prompt
+
+        def do(self, state):
+            self.decision.value = True
+
+    class NoMove(Move):
+        """
+        User chooses no.
+        """
+
+        def __init__(self, decision, prompt=None):
+            self.decision = decision
+            self.prompt = prompt or "No"
+
+        def __str__(self):
+            return self.prompt
+
+        def do(self, state):
+            self.decision.value = False
+
+
 class PlayCard(Move):
     """
     Player plays a card.

@@ -567,7 +567,6 @@ def sentry_fn(state, player):
                                    player,
                                    num_select=len(drawn_cards),
                                    prompt="You may trash cards with Sentry.",
-                                   filter_func=None,
                                    optional=True,
                                    card_container=drawn_cards)
     for card in trash_cards:
@@ -578,7 +577,6 @@ def sentry_fn(state, player):
                                      player,
                                      num_select=len(drawn_cards),
                                      prompt="You may discard cards with Sentry.",
-                                     filter_func=None,
                                      optional=True,
                                      card_container=drawn_cards)
     for card in discard_cards:
@@ -590,7 +588,6 @@ def sentry_fn(state, player):
                                      num_select=len(drawn_cards),
                                      prompt="You may put cards back in any order with Sentry. Cards are topdecked in "
                                             "order, so the card listed last is placed on top.",
-                                     filter_func=None,
                                      optional=False,
                                      card_container=drawn_cards)
     for card in topdeck_cards:
@@ -606,21 +603,19 @@ Sentry = Card(
     effect_fn=sentry_fn,
 )
 
-"""
-Library = Card(
-    name="Library",
-    types=[CardType.ACTION],
-    cost=5,
-    effect_list=[],
-)
 
+def harbinger_fn(state, player):
+    cards = dec.ChooseCardsDecision(
+        state,
+        player,
+        num_select=1,
+        prompt="You may topdeck a card from your discard pile.",
+        optional=True,
+        card_container=player.discard_pile,
+    )
+    if cards:
+        topdeck(state, player, cards[0], player.discard_pile)
 
-Sentry = Card(
-    name="Sentry",
-    types=[CardType.ACTION],
-    cost=5,
-    effect_list=[],
-)
 
 Harbinger = Card(
     name="Harbinger",
@@ -628,6 +623,52 @@ Harbinger = Card(
     cost=3,
     add_cards=1,
     add_actions=1,
+    effect_list=[],
+)
+
+
+def library_fn(state, player):
+    set_aside = []
+    while len(player.hand) < 7:
+        cards = player.draw(1)
+
+        if cards:
+            # Give Player a decision to keep or not.
+            keep = True
+            if cards[0].is_type(CardType.ACTION):
+                ans = dec.boolean_choice(state,
+                                         player,
+                                         prompt=f"Library draws {cards[0]}, keep?",
+                                         yes_prompt="Put into hand.",
+                                         no_prompt="Discard.")
+                print(ans)
+                if not ans:
+                    keep = False
+
+            if keep:
+                player.hand.append(cards[0])
+            else:
+                set_aside.append(cards[0])
+        else:
+            break
+
+    for card in set_aside:
+        discard(state, player, card, set_aside)
+
+
+Library = Card(
+    name="Library",
+    types=[CardType.ACTION],
+    cost=5,
+    effect_fn=library_fn,
+)
+
+
+"""
+Library = Card(
+    name="Library",
+    types=[CardType.ACTION],
+    cost=5,
     effect_list=[],
 )
 

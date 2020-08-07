@@ -87,7 +87,6 @@ def gain_card_to_hand(state, player, pile):
         pile.qty -= 1
 
 
-
 def gain_card_to_topdeck(state, player, pile):
     if pile.qty > 0:
         process_event(state, log.GainEvent(player, pile.card))
@@ -96,7 +95,6 @@ def gain_card_to_topdeck(state, player, pile):
         player.draw_pile.append(pile.card)
         pile.qty -= 1
         process_event(state, log.ExitContext())
-
 
 
 def buy_card(state, player, card_name):
