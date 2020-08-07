@@ -199,7 +199,7 @@ class ChoosePileDecision(Decision):
             self.decision.pile = self.pile
 
 
-def boolean_choice(state, player, prompt, yes_prompt, no_prompt):
+def boolean_choice(state, player, prompt, yes_prompt="Yes", no_prompt="No"):
     decision = BooleanDecision(state, player, prompt, yes_prompt, no_prompt)
     game.process_decision(player.agent, decision, state)
     return decision.value

@@ -32,6 +32,7 @@ class Card(object):
                  effect_list: List[Effect] = [],
                  effect_fn: Callable = None,
                  vp_fn: Callable = None,
+                 global_trigger = None,
                  ):
         self.name = name
         self.types = types
@@ -45,6 +46,7 @@ class Card(object):
         self.effect_list = effect_list
         self.effect_fn = effect_fn
         self.vp_fn = vp_fn
+        self.global_trigger = global_trigger
 
     def __str__(self) -> str:
         return self.name

@@ -169,6 +169,9 @@ class OpponentsDiscardDownToEffect(effect.Effect):
 
     def run(self, state, player):
         for opp in state.other_players(player):
+            if opp.immune_to_attack:
+                opp.immune_to_attack = False
+                continue
             DiscardDownToEffect(self.num_cards_downto).run(state, opp)
 
 
@@ -178,6 +181,9 @@ class OpponentsGainCardEffect(effect.Effect):
 
     def run(self, state, player):
         for opp in state.other_players(player):
+            if opp.immune_to_attack:
+                opp.immune_to_attack = False
+                continue
             GainCardToDiscardPileEffect(self.card_name).run(state, opp)
 
 
@@ -259,7 +265,13 @@ Remodel = Card(
 
 
 def bandit_attack_fn(state, player):
+    # Attack fn
     for opp in state.other_players(player):
+
+        if opp.immune_to_attack:
+            opp.immune_to_attack=False
+            continue
+
         top_two_cards = player.draw(2)
 
         treasures = []
@@ -344,7 +356,7 @@ class MerchantTrigger(trig.Trigger):
     def condition(self, event):
         return event.event_type == log.EventType.PLAY and event.card == Silver
 
-    def apply(self, state):
+    def apply(self, event, state):
         if not self.triggered:
             self.player.coins += 1
             self.triggered = True
@@ -530,7 +542,14 @@ Artisan = Card(
 
 def bureaucrat_fn(state, player):
     gain_card_to_topdeck(state, player, state.supply_piles["Silver"])
+
+    # Attack code.
     for opp in state.other_players(player):
+
+        if opp.immune_to_attack:
+            opp.immune_to_attack=False
+            continue
+
         victory_card_count = 0
         for card in opp.hand:
             if card.is_type(CardType.VICTORY):
@@ -664,13 +683,19 @@ Library = Card(
 )
 
 
-"""
-Library = Card(
-    name="Library",
-    types=[CardType.ACTION],
-    cost=5,
-    effect_list=[],
-)
+class MoatTrigger(trig.Trigger):
+    def condition(self, event):
+        return event.event_type == log.EventType.PLAY and event.card.is_type(CardType.ATTACK)
+
+    def apply(self, event: log.Event, state):
+        for opp in state.other_players(event.player):
+            if Moat in opp.hand:
+                result = dec.boolean_choice(state,
+                                            opp,
+                                            "Reveal Moat to defend attack?")
+                if result:
+                    reveal(state, opp, Moat)
+                    opp.immune_to_attack = True
 
 
 Moat = Card(
@@ -678,10 +703,9 @@ Moat = Card(
     types=[CardType.ACTION, CardType.REACTION],
     cost=2,
     add_cards=2,
-    effect_list=[],
+    global_trigger=MoatTrigger(),
 )
 
-"""
 
 BaseKingdom = {
     "Village": SupplyPile(Village, 10),
@@ -706,4 +730,8 @@ BaseKingdom = {
     "Council Room": SupplyPile(CouncilRoom, 10),
     "Artisan": SupplyPile(Artisan, 10),
     "Bureaucrat": SupplyPile(Bureaucrat, 10),
+    "Sentry": SupplyPile(Sentry, 10),
+    "Harbinger": SupplyPile(Harbinger, 10),
+    "Library": SupplyPile(Library, 10),
+    "Moat": SupplyPile(Moat, 10),
 }

@@ -174,6 +174,7 @@ class EventLog(object):
     def add_event(self, event):
         self.events.append(event)
 
+        # For now, actually print the contents of the log.
         if event.event_type == EventType.CONTEXT:
             self.context_level += event.value
         else:

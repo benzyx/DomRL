@@ -31,11 +31,12 @@ class Player(object):
         self.coins = coins or 0
         self.buys = buys or 0
         self.draw_pile = draw_pile or \
-            [Copper for _ in range(7)] + [Estate for _ in range(3)]
+            [base.Witch for _ in range(7)] + [base.Moat for _ in range(3)]
         self.discard_pile = discard_pile or []
         self.hand = hand or []
         self.play_area = play_area or []
         self.phase = TurnPhase.END_PHASE
+        self.immune_to_attack = False
 
         shuffle(self.draw_pile)
 
@@ -115,11 +116,16 @@ class GameState(object):
         self.players = players or [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = 0
         self.turn_triggers = []
+        self.global_triggers = []
 
         """
         TODO(benzyx): Make supply piles handle mixed piles.
         """
         self.supply_piles = choose_supply_from_kingdoms(kingdoms)
+
+        for _, pile in self.supply_piles.items():
+            if pile.card.global_trigger:
+                self.global_triggers.append(pile.card.global_trigger)
 
         if players is None:
             for player in self.players:

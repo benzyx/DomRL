@@ -9,14 +9,14 @@ def process_event(state, event):
     state.event_log.add_event(event)
 
     # Process all reaction triggers.
-    # for trigger in state.reaction_triggers:
-    #     if trigger.condition(event):
-    #         trigger.apply(state)
+    for trigger in state.global_triggers:
+        if trigger.condition(event):
+            trigger.apply(event, state)
 
     # Process all turn triggers (Merchant, Goons, etc).
     for trigger in state.turn_triggers:
         if trigger.condition(event):
-            trigger.apply(state)
+            trigger.apply(event, state)
 
 
 # The following functions are the entry points for most
