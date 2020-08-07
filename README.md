@@ -2,7 +2,7 @@
 
 DomRL is a simulation environment for the card game Dominion, created by Donald X Vaccarino, meant to simplify the development and testing of various AI strategies, specifically Reinforcement Learning algorithms.
 
-The goal is to make an engine that stores a serializable state of the game. Improved state management would be helpful for building more complex AI agents.
+The goal is to make an engine that stores a serializable state of the game and exposes a comprehensive state object to agents, which contain all the information that human players would have. This improved state management will be helpful for building more complex AI agents, beyond simple priority logic supported by most agents.
 
 The engine currently supports all cards in Base Dominion.
 
