@@ -19,6 +19,8 @@ class PlayerView(object):
             if is_player else [None for card in player.discard_pile]
         self.hand = [card.name for card in player.hand] \
             if is_player else [None for card in player.discard_pile]
+        self.previous_deck = player.previous_deck if is_player else \
+            [None for card in player.previous_deck]
 
         # Never public to player view, but should have some partial information about.
         self.discard_pile_size = len(player.discard_pile)

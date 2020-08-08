@@ -37,6 +37,7 @@ class Player(object):
         self.play_area = play_area or []
         self.phase = TurnPhase.END_PHASE
         self.immune_to_attack = False
+        self.previous_deck = []
 
         shuffle(self.draw_pile)
 
@@ -52,6 +53,7 @@ class Player(object):
         """
         assert (len(self.draw_pile) == 0)
         self.draw_pile = self.discard_pile
+        self.previous_deck = self.discard_pile
         self.discard_pile = []
         shuffle(self.draw_pile)
 

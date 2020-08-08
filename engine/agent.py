@@ -11,18 +11,18 @@ PlayDecision = Union[ActionPhaseDecision, TreasurePhaseDecision]
 def find_card_in_decision(decision, card_name):
     if isinstance(decision, PlayDecision.__args__):
         for idx, move in enumerate(decision.moves):
-            if move.card.name == card_name:
+            if hasattr(move, 'card') and move.card.name == card_name:
                 return [idx]
     elif isinstance(decision, BuyPhaseDecision):
         for idx, move in enumerate(decision.moves):
-            if move.card_name == card_name:
+            if hasattr(move, 'card_name') and move.card_name == card_name:
                 return [idx]
     return [0]
 
 
 def get_minimum_coin_card(decision):
     card_coins = [c.coins for c in decision.moves.card]
-    return [np.argmin(card_coins))]
+    return [np.argmin(card_coins)]
 
 
 class Agent(object):
@@ -122,7 +122,8 @@ class BigMoneyAgent(Agent):
             return [1]
 
         if state_view.player.phase == TurnPhase.BUY_PHASE:
-            all_cards_money = [c.coins for c in state_view.player.all_cards]
+            all_cards_money = [c.coins for c in state_view.player.previous_deck] \
+                or [0]
             hand_money_ev = np.mean(all_cards_money) * 5 / len(all_cards_money)
 
             if state_view.player.coins >= 8 and hand_money_ev > 8:
