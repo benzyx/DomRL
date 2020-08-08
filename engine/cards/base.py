@@ -271,7 +271,7 @@ def bandit_attack_fn(state, player):
             opp.immune_to_attack=False
             continue
 
-        top_two_cards = player.draw(2)
+        top_two_cards = opp.draw(2)
 
         treasures = []
         non_treasures = []
