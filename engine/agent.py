@@ -5,11 +5,11 @@ import numpy as np
 from typing import Union
 
 
-PlayDecsion = Union[ActionPhaseDecision, TreasurePhaseDecision]
+PlayDecision = Union[ActionPhaseDecision, TreasurePhaseDecision]
 
 
 def find_card_in_decision(decision, card_name):
-    if isinstance(decision, PlayDecsion.__args__):
+    if isinstance(decision, PlayDecision.__args__):
         for idx, move in enumerate(decision.moves):
             if move.card.name == card_name:
                 return [idx]
