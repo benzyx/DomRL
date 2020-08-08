@@ -52,3 +52,15 @@ class Game(object):
 
             # Print state of the board.
             process_decision(agent, decision, state)
+
+        winners = state.get_winners()
+        if len(winners) == 1:
+            print(f'The winner is {winners[0]}!')
+        else:
+            print('It\'s a tie!')
+
+        vps = [player.total_vp() for player in state.players]
+        vp_messages = ['Player {}: {} VP'.format(i+1, v)
+                        for i, v in enumerate(vps)]
+        for message in vp_messages:
+            print(message)

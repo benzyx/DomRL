@@ -124,7 +124,7 @@ class BigMoneyAgent(Agent):
         if state_view.player.phase == TurnPhase.BUY_PHASE:
             all_cards_money = [c.coins for c in state_view.player.previous_deck] \
                 or [0]
-            hand_money_ev = np.mean(all_cards_money) * 5 / len(all_cards_money)
+            hand_money_ev = np.mean(all_cards_money) * 5
 
             if state_view.player.coins >= 8 and hand_money_ev > 8:
                 return find_card_in_decision(decision, 'Province')
