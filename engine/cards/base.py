@@ -271,7 +271,7 @@ def bandit_attack_fn(state, player):
             opp.immune_to_attack=False
             continue
 
-        top_two_cards = opp.draw(2)
+        top_two_cards = draw(state, opp, 2, draw_event=False)
 
         treasures = []
         non_treasures = []
@@ -441,7 +441,7 @@ def cellar_fn(state, player):
     for card in chosen_cards:
         player_discard_card_from_hand(state, player, card)
 
-    player.draw_into_hand(num_discarded)
+    draw_into_hand(state, player, num_discarded)
 
 
 Cellar = Card(
@@ -481,7 +481,7 @@ Mine = Card(
 
 
 def vassal_fn(state, player):
-    cards = player.draw(1)
+    cards = draw(state, player, 1, draw_event=False)
     if cards:
         drawn_card = cards[0]
         if drawn_card.is_type(CardType.ACTION):
@@ -501,7 +501,7 @@ Vassal = Card(
 
 def council_room_fn(state, player):
     for opp in state.other_players(player):
-        opp.draw_into_hand(1)
+        draw_into_hand(state, opp, 1)
 
 
 CouncilRoom = Card(
@@ -578,7 +578,7 @@ Bureaucrat = Card(
 
 
 def sentry_fn(state, player):
-    drawn_cards = player.draw(2)
+    drawn_cards = draw(state, player, 2, draw_event=False)
 
     # Choose trash.
     trash_cards = dec.choose_cards(state,
@@ -648,7 +648,7 @@ Harbinger = Card(
 def library_fn(state, player):
     set_aside = []
     while len(player.hand) < 7:
-        cards = player.draw(1)
+        cards = draw(state, player, 1, draw_event=False)
 
         if cards:
             # Give Player a decision to keep or not.

@@ -1,17 +1,7 @@
-from enum import Enum
 from typing import List, Callable
-
 from .effect import Effect
-
-class CardType(Enum):
-    VICTORY = 1
-    TREASURE = 2
-    ACTION = 3
-    REACTION = 4
-    ATTACK = 5
-    CURSE = 6
-    DURATION = 7
-    NIGHT = 8
+from .state_funcs import draw_into_hand
+from .util import CardType
 
 
 class Card(object):
@@ -64,29 +54,25 @@ class Card(object):
     def is_card(self, card: str) -> bool:
         return card == self.name
 
-    def draw_cards(self, player, num: int):
-        player.draw_into_hand(num)
-
-    def increment_actions(self, player, num: int):
-        player.actions += num
-
-    def increment_buys(self, player, num: int):
-        player.buys += num
-
-    def increment_coins(self, player, num: int):
-        player.coins += num
-
-    """
-    The entry point for card play effect.
-    - state: State of the Game
-    - player: Player who played the card.
-    """
 
     def play(self, state, player):
-        self.draw_cards(player, self.add_cards)
-        self.increment_actions(player, self.add_actions)
-        self.increment_buys(player, self.add_buys)
-        self.increment_coins(player, self.coins)
+        """
+        The entry point for card play effect.
+        - state: State of the Game
+        - player: Player who played the card.
+        """
+
+        # Draw cards
+        draw_into_hand(state, player, self.add_cards)
+
+        # Increment actions
+        player.actions += self.add_actions
+
+        # Increment Buys
+        player.buys += self.add_buys
+
+        # Increment Coins
+        player.coins += self.coins
 
         for effect in self.effect_list:
             effect.run(state, player)

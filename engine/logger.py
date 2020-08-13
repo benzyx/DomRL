@@ -11,7 +11,8 @@ class EventType(Enum):
     TRASH = 6
     TOPDECK = 7
     REVEAL = 8
-    CONTEXT = 9
+    SHUFFLE = 9
+    CONTEXT = 10
 
 
 def get_action_word(event_type: EventType) -> str:
@@ -35,8 +36,9 @@ def get_action_word(event_type: EventType) -> str:
 
 
 class Event(object):
+    # By default, do not hide the action at all.
     def obfuscate(self, player):
-        raise NotImplementedError("Event does not implement hide_if_needed")
+        return self
 
     def to_dict(self):
         raise NotImplementedError("Event does not implement to_dict")
@@ -54,10 +56,6 @@ class CardEvent(Event):
             return f"{self.player.name} {action_word} a {self.card}."
         else:
             return f"{self.player.name} {action_word} a card."
-
-    # By default, do not hide the action at all.
-    def obfuscate(self, player):
-        return self
 
     def to_dict(self):
         return {
@@ -90,12 +88,15 @@ class DrawEvent(CardEvent):
     # Other players should not see the card being drawn.
     def obfuscate(self, player):
         if player != self.player:
-            return DrawEvent(self, player, None)
+            return DrawEvent(self.player, None)
         else:
             return self
 
 
 class DiscardEvent(CardEvent):
+    """
+    TODO(benzyx): Actually need to obfuscate some discards...
+    """
     def __init__(self, player, card):
         super().__init__(EventType.DISCARD, player, card)
 
@@ -115,17 +116,30 @@ class RevealEvent(CardEvent):
         super().__init__(EventType.REVEAL, player, card)
 
 
+class ShuffleEvent(Event):
+    def __init__(self, player):
+        self.event_type = EventType.SHUFFLE
+        self.player = player
+
+    def __str__(self):
+        return f"{self.player} shuffles his deck."
+
+    def to_dict(self):
+        return {
+            "type": EventType.SHUFFLE.name,
+            "player": self.player.name,
+            "str": str(self),
+        }
+
+
 class EnterContext(Event):
     def __init__(self):
         self.event_type = EventType.CONTEXT
         self.value = 1
 
-    def obfuscate(self, player):
-        return self
-
     def to_dict(self):
         return {
-            "type": EventType.CONTEXT,
+            "type": self.event_type.name,
             "value": 1,
         }
 
@@ -140,7 +154,7 @@ class ExitContext(Event):
 
     def to_dict(self):
         return {
-            "type": EventType.CONTEXT,
+            "type": self.event_type.name,
             "value": -1,
         }
 
@@ -152,7 +166,7 @@ def print_dict_log(event_dict_list):
     print("=== Replaying log from beginning ===")
     context_level = 0
     for event in event_dict_list:
-        if event["type"] == EventType.CONTEXT:
+        if event["type"] == EventType.CONTEXT.name:
             context_level += event["value"]
         else:
             for i in range(context_level):

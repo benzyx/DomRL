@@ -47,49 +47,6 @@ class Player(object):
     def __str__(self):
         return self.name
 
-    def cycle_shuffle(self):
-        """
-        Moves all cards from discard pile to draw_pile, and shuffles it.
-        """
-        assert (len(self.draw_pile) == 0)
-        self.draw_pile = self.discard_pile
-        self.previous_deck = self.discard_pile
-        self.discard_pile = []
-        shuffle(self.draw_pile)
-
-    def draw_one(self):
-        if len(self.draw_pile) == 0:
-            self.cycle_shuffle()
-
-        if len(self.draw_pile) >= 1:
-            return self.draw_pile.pop()
-        else:
-            return None
-
-    def draw(self, num):
-        """
-        TODO(benzyx): Need to log this somehow.
-        I should move all of draw functionality over to state_funcs, probably.
-        A bit of a hassle :(
-        """
-        cards = []
-        for i in range(num):
-            card = self.draw_one()
-            if card:
-                cards.append(card)
-        return cards
-
-    def draw_into_hand(self, num):
-        cards = self.draw(num)
-        self.hand.extend(cards)
-
-    def clean_up(self):
-        self.discard_pile.extend(self.play_area)
-        self.discard_pile.extend(self.hand)
-        self.play_area = []
-        self.hand = []
-        self.draw_into_hand(5)
-
     def init_turn(self):
         self.actions = 1
         self.buys = 1
@@ -136,7 +93,7 @@ class GameState(object):
 
         if players is None:
             for player in self.players:
-                player.draw_into_hand(5)
+                draw_into_hand(self, player, 5)
 
         self.players[0].init_turn()
 
@@ -175,17 +132,6 @@ class GameState(object):
             ret.append(self.players[idx])
             idx = self.next_player_idx(idx)
         return ret
-
-    def end_turn(self):
-        self.current_player.clean_up()
-        self.next_player_turn()
-        if self.current_player_idx == 0:
-            self.turn += 1
-
-        # Reset all Triggers for this turn (such as Merchant).
-        self.turn_triggers = []
-
-        self.current_player.init_turn()
 
     def empty_piles(self):
         pileouts = []

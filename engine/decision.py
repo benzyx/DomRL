@@ -328,4 +328,4 @@ class EndTurn(Move):
 
     def do(self, state):
         assert (state.current_player.phase == TurnPhase.END_PHASE)
-        state.end_turn()
+        end_turn(state)
