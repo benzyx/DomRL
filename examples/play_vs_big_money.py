@@ -1,7 +1,7 @@
-from engine.game import Game
-from engine.agent import StdinAgent
-from agents.big_money_agent import BigMoneyAgent
-import engine.cards.base as base
+from domrl.engine.game import Game
+from domrl.engine.agent import StdinAgent
+from domrl.agents.big_money_agent import BigMoneyAgent
+import domrl.engine.cards.base as base
 
 
 if __name__ == '__main__':

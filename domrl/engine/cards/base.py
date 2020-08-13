@@ -1,12 +1,12 @@
-from engine.card import Card, CardType
-from engine.state_funcs import *
-from engine.card import *
+from ..card import Card, CardType
+from ..state_funcs import *
+from ..card import *
 
-import engine.supply as supply
-import engine.decision as dec
-import engine.effect as effect
-import engine.game as game
-import engine.trigger as trig
+import domrl.engine.supply as supply
+import domrl.engine.decision as dec
+import domrl.engine.effect as effect
+import domrl.engine.game as game
+import domrl.engine.trigger as trig
 
 SupplyPile = supply.SupplyPile
 

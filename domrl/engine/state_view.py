@@ -1,4 +1,4 @@
-import engine.state as st
+import domrl.engine.state as st
 from .supply import SupplyPile
 
 class PlayerView(object):

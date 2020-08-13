@@ -1,5 +1,5 @@
 import random
-from engine.card import *
+from .card import *
 
 
 class SupplyPile(object):

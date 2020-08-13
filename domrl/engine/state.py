@@ -2,8 +2,8 @@ from random import shuffle
 from .util import TurnPhase
 from .supply import choose_supply_from_kingdoms
 from .card import *
-import engine.cards.base as base
-import engine.logger as log
+import domrl.engine.cards.base as base
+import domrl.engine.logger as log
 
 
 class Player(object):

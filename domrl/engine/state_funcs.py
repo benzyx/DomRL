@@ -1,6 +1,6 @@
-from engine.util import CardType
+from .util import CardType
 from random import shuffle
-import engine.logger as log
+import domrl.engine.logger as log
 
 
 def process_event(state, event):

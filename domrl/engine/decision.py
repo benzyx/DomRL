@@ -1,6 +1,6 @@
-import engine.game as game
-from engine.util import *
-from engine.state_funcs import *
+import domrl.engine.game as game
+from .util import *
+from .state_funcs import *
 
 
 class Move(object):

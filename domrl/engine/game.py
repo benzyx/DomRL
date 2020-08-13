@@ -1,7 +1,7 @@
-import engine.state as st
-from engine.decision import *
-from engine.util import TurnPhase
-from engine.state_view import StateView
+import domrl.engine.state as st
+from .decision import *
+from .util import TurnPhase
+from .state_view import StateView
 
 
 def process_decision(agent, decision, state):

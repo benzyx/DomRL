@@ -1,7 +1,8 @@
-from engine.agent import Agent
+from ..engine.agent import Agent
+from ..engine.decision import *
+
 import numpy as np
 from typing import Union
-from engine.decision import *
 
 PlayDecision = Union[ActionPhaseDecision, TreasurePhaseDecision]
 

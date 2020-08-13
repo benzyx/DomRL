@@ -1,4 +1,4 @@
-import engine.logger as log
+import domrl.engine.logger as log
 
 
 class Trigger:

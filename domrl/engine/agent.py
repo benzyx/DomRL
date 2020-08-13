@@ -1,6 +1,5 @@
-import engine.logger as log
+import domrl.engine.logger as log
 from .decision import *
-
 
 class Agent(object):
     def policy(self, decision, state_view):
