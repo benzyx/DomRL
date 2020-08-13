@@ -1,5 +1,6 @@
 from engine.game import Game
-from engine.agent import StdinAgent, BigMoneyAgent
+from engine.agent import StdinAgent
+from agents.big_money_agent import BigMoneyAgent
 import engine.cards.base as base
 
 
