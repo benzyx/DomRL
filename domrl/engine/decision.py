@@ -1,6 +1,25 @@
-import domrl.engine.game as game
 from .util import *
 from .state_funcs import *
+import domrl.engine.state_view as stv
+
+def process_decision(agent, decision, state):
+
+    # Create a StateView object, to hide information in state from the agent.
+    state_view = stv.StateView(state, decision.player)
+
+    # Get decision from agent, giving them the view of the state.
+    move_indices = agent.policy(decision, state_view)
+
+    # TODO(benzyx): Enforce that the indices are not repeated.
+    if decision.optional:
+        if len(move_indices) > decision.num_select:
+            raise Exception("Decision election error! Too many moves selected.")
+    else:
+        if len(move_indices) != decision.num_select:
+            raise Exception("Decision election error! Number of moves selected not correct.")
+
+    for idx in move_indices:
+        decision.moves[idx].do(state)
 
 
 class Move(object):
@@ -162,7 +181,7 @@ def choose_cards(state, player, num_select, prompt, filter_func=None, optional=T
         optional=optional,
         card_container=card_container,
     )
-    game.process_decision(player.agent, decision, state)
+    process_decision(player.agent, decision, state)
     return decision.cards
 
 

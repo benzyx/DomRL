@@ -1,8 +1,5 @@
-import domrl.engine.state as st
-from .supply import SupplyPile
-
 class PlayerView(object):
-    def __init__(self, player: st.Player, is_player: bool):
+    def __init__(self, player, is_player: bool):
         # Public player members.
         self.name = player.name
         self.idx = player.idx
@@ -19,6 +16,8 @@ class PlayerView(object):
             if is_player else [None for card in player.discard_pile]
         self.hand = [card.name for card in player.hand] \
             if is_player else [None for card in player.discard_pile]
+
+        # TODO(benzyx): do we really want this?
         self.previous_deck = player.previous_deck if is_player else \
             [None for card in player.previous_deck]
 
@@ -38,7 +37,7 @@ class PlayerView(object):
 
 
 class SupplyPileView(object):
-    def __init__(self, supply_pile: SupplyPile):
+    def __init__(self, supply_pile):
         self.card_name = supply_pile.card.name
         self.qty = supply_pile.qty
         self.buyable = supply_pile.buyable
@@ -58,7 +57,7 @@ class StateView(object):
     It needs to hide the aspects of State that should not be exposed to the agent.
     """
 
-    def __init__(self, state: st.GameState, player: st.Player):
+    def __init__(self, state, player):
         self.supply_piles = {}
         for name, pile in state.supply_piles.items():
             self.supply_piles[name] = SupplyPileView(pile)

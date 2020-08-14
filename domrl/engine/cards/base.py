@@ -1,4 +1,3 @@
-from ..card import Card, CardType
 from ..state_funcs import *
 from ..card import *
 
@@ -298,7 +297,7 @@ def bandit_attack_fn(state, player):
             assert (len(treasures) == 0)
 
         elif len(treasures) == 1:
-            trash(treasures[0])
+            trash(state, player, treasures[0], treasures)
             assert (len(treasures) == 0)
 
         for card in non_treasures.copy():
@@ -510,7 +509,7 @@ CouncilRoom = Card(
     cost=5,
     add_cards=4,
     add_buys=1,
-    effect_list=council_room_fn,
+    effect_fn=council_room_fn,
 )
 
 
@@ -623,7 +622,7 @@ Sentry = Card(
 
 
 def harbinger_fn(state, player):
-    cards = dec.ChooseCardsDecision(
+    cards = dec.choose_cards(
         state,
         player,
         num_select=1,
