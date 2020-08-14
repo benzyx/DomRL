@@ -22,11 +22,12 @@ class Player(object):
                  discard_pile=None,
                  hand=None,
                  play_area=None,
+                 phase=None,
                  ):
         self.name = name
         self.idx = idx
         self.agent = agent
-        self.vp = vp or 0
+        self.vp_tokens = vp or 0
         self.actions = actions or 0
         self.coins = coins or 0
         self.buys = buys or 0
@@ -35,10 +36,13 @@ class Player(object):
         self.discard_pile = discard_pile or []
         self.hand = hand or []
         self.play_area = play_area or []
-        self.phase = TurnPhase.END_PHASE
+        self.phase = phase or TurnPhase.END_PHASE
         self.immune_to_attack = False
+
+        # TODO: I don't think this is necessary.
         self.previous_deck = []
 
+        # TODO: Move this to game start or something.
         shuffle(self.draw_pile)
 
     def __eq__(self, other):
@@ -58,7 +62,7 @@ class Player(object):
         return self.hand + self.play_area + self.draw_pile + self.discard_pile
 
     def total_vp(self):
-        total = self.vp
+        total = self.vp_tokens
         for card in self.all_cards:
             total += card.vp_constant
 
@@ -73,19 +77,25 @@ class GameState(object):
     Keeps track of the game state.
     """
 
-    def __init__(self, agents, players=None, kingdoms=None):
+    def __init__(self,
+                 agents=None,
+                 players=None,
+                 turn=None,
+                 current_player_idx=None,
+                 preset_supply=None,
+                 kingdoms=None):
         self.trash = []
-        self.event_log = log.EventLog(agents)
-        self.turn = 0
+        self.event_log = log.EventLog()
+        self.turn = turn or 0
         self.players = players or [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
-        self.current_player_idx = 0
+        self.current_player_idx = current_player_idx or 0
         self.turn_triggers = []
         self.global_triggers = []
 
         """
         TODO(benzyx): Make supply piles handle mixed piles.
         """
-        self.supply_piles = choose_supply_from_kingdoms(kingdoms)
+        self.supply_piles = preset_supply or choose_supply_from_kingdoms(kingdoms)
 
         for _, pile in self.supply_piles.items():
             if pile.card.global_trigger:
@@ -134,11 +144,11 @@ class GameState(object):
         return ret
 
     def empty_piles(self):
-        pileouts = []
+        pile_outs = []
         for _, pile in self.supply_piles.items():
             if pile.qty == 0:
-                pileouts.append(pile)
-        return pileouts
+                pile_outs.append(pile)
+        return pile_outs
 
     def is_game_over(self):
         province_pileout = self.supply_piles["Province"].qty == 0
@@ -148,10 +158,15 @@ class GameState(object):
     def get_winners(self):
         winners = []
         best_vp = self.players[0].total_vp()
+        best_vp_taken_extra_turn = False
         for player in self.players:
             if player.total_vp() > best_vp:
                 winners = [player]
             elif player.total_vp() == best_vp:
-                winners.append(player)
+                if not best_vp_taken_extra_turn and player.idx >= self.current_player_idx:
+                    best_vp_taken_extra_turn = True
+                    winners = [player]
+                else:
+                    winners.append(player)
 
         return winners

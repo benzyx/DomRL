@@ -180,8 +180,7 @@ class EventLog(object):
     Event log.
     """
 
-    def __init__(self, agents):
-        self.agents = agents
+    def __init__(self):
         self.events = []
         self.context_level = 0
 

@@ -3,7 +3,7 @@ class PlayerView(object):
         # Public player members.
         self.name = player.name
         self.idx = player.idx
-        self.vp_tokens = player.vp
+        self.vp_tokens = player.vp_tokens
         self.total_vp = player.total_vp()
         self.actions = player.actions
         self.coins = player.coins

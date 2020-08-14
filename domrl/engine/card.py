@@ -3,7 +3,6 @@ from .effect import Effect
 from .state_funcs import draw_into_hand
 from .util import CardType
 
-
 class Card(object):
     """
     Base class for all cards.
