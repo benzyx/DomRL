@@ -4,8 +4,8 @@ from .util import TurnPhase
 from .state_view import StateView
 
 class Game(object):
-    def __init__(self, agents, players=None, kingdoms=None):
-        self.state = st.GameState(agents, players=players, kingdoms=kingdoms)
+    def __init__(self, agents, players=None, kingdoms=None, verbose=True):
+        self.state = st.GameState(agents, players=players, kingdoms=kingdoms, verbose=verbose)
         self.agents = agents
 
     def run(self):
@@ -31,12 +31,15 @@ class Game(object):
 
             # Print state of the board.
             process_decision(agent, decision, state)
+        return state
 
+    def print_result(self):
+        state = self.state
         winners = state.get_winners()
         if len(winners) == 1:
             print(f'The winner is {winners[0]}!')
         else:
-            print('It\'s a tie!')
+            print("It's a tie!")
 
         vps = [player.total_vp() for player in state.players]
         vp_messages = ['Player {}: {} VP'.format(i+1, v)

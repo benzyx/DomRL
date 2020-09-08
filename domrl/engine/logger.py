@@ -1,5 +1,5 @@
 from enum import Enum
-
+import logging
 
 class EventType(Enum):
     CUSTOM = 0
@@ -180,9 +180,10 @@ class EventLog(object):
     Event log.
     """
 
-    def __init__(self):
+    def __init__(self, verbose):
         self.events = []
         self.context_level = 0
+        self.verbose = verbose
 
     def add_event(self, event):
         self.events.append(event)
@@ -191,9 +192,10 @@ class EventLog(object):
         if event.event_type == EventType.CONTEXT:
             self.context_level += event.value
         else:
-            for i in range(self.context_level):
-                print("  ", end="")
-            print(event)
+            if self.verbose:
+                for i in range(self.context_level):
+                    print("  ", end="")
+                print(event)
 
     def hide_for_player(self, player):
         return [event.obfuscate(player).to_dict() for event in self.events]

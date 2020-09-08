@@ -83,9 +83,10 @@ class GameState(object):
                  turn=None,
                  current_player_idx=None,
                  preset_supply=None,
-                 kingdoms=None):
+                 kingdoms=None,
+                 verbose=True):
         self.trash = []
-        self.event_log = log.EventLog()
+        self.event_log = log.EventLog(verbose)
         self.turn = turn or 0
         self.players = players or [Player(f"Player {i+1}", i, agent) for i, agent in enumerate(agents)]
         self.current_player_idx = current_player_idx or 0
