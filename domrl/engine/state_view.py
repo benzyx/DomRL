@@ -16,6 +16,14 @@ class PlayerView(object):
             if is_player else [None for card in player.discard_pile]
         self.hand = [card.name for card in player.hand] \
             if is_player else [None for card in player.discard_pile]
+        # added to allow for full provincial functionality
+        self.draw_pile = [card.name for card in player.draw_pile] \
+            if is_player else [None for card in player.draw_pile]
+
+        # added to allow for full provincial functionality
+        self.all_cards = [card for card in player.discard_pile] + \
+            [card for card in player.hand] + \
+            [card for card in player.draw_pile]
 
         # TODO(benzyx): do we really want this?
         self.previous_deck = player.previous_deck if is_player else \
