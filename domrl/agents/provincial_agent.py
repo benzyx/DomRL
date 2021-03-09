@@ -189,9 +189,15 @@ def provincial_reaction_chapel(decision, state_view):
 
     return [0]
 
-# reaction for card workshop
-def provincial_reaction_workshop(decision, state_view, buy_menu):
-    return provincial_buy_menu(decision, state_view, 4, buy_menu) # always use buy menu
+def provincial_reaction_mine_gain_card(decision, state_view, buy_menu):
+    card_options = [supply.pile.card.name for supply in decision.moves]
+    gold_pos = "Gold" in card_options
+    silver_pos = "Silver" in card_options
+    if gold_pos:
+        return [card_options.index("Gold")]
+    if silver_pos:
+        return [card_options.index("Silver")]
+    return [0] #### last available option is copper
 
 # reaction for card bureaucrat
 def provincial_reaction_bureaucrat(decision):
@@ -221,15 +227,11 @@ def provincial_reaction_throne_room(decision):
     return provincial_action_phase(decision) # always use action policy here
 
 # reaction for card library
-def provincial_reaction_library(state_view):
-    # no actions imply no point in taking action card
-    if state_view.player.actions == 0:
-        return False
-    else:
-        return True # otherwise take the action card (independent of what it is)
+def provincial_reaction_library(decision):
+    return [1] # for now we always keep action cards (need to check what provincial does)
 
 # reaction for card mine
-def provincial_reaction_mine(decision, state_view):
+def provincial_reaction_mine_trash_card(decision, state_view):
     # no treasure cards in hand
     if len(decision.moves) == 1:
         return [0]
@@ -249,14 +251,9 @@ def provincial_reaction_mine(decision, state_view):
 ########################## END REACTIONS #########################
 
 class ProvincialAgent(Agent):
-    def __init__(self):
+    def __init__(self, buy_menu):
         ######################## BUY MENU ########################
-        self.buy_menu_one = [('Gold', 6, 99), ('Witch', 5, 1), ('Council Room', 5, 5), ('Militia', 4, 1), \
-                    ('Silver', 3, 1), ('Village', 3, 5), ('Silver', 3, 99)]
-
-        self.buy_menu_two = [('Gold', 6, 99), ('Mine', 5, 1), ('Silver', 3, 2), ('Library', 5, 1), \
-                    ('Village', 3, 1), ('Mine', 5, 1), ('Village', 3, 1), ('Library', 5, 1), \
-                    ('Village', 3, 2), ('Silver', 3, 99)]
+        self.buy_menu = buy_menu
         ######################## BUY MENU ########################
 
     def policy(self, decision, state_view):
@@ -278,10 +275,6 @@ class ProvincialAgent(Agent):
 
         # moat is handeled by global trigger
 
-        # workshop is played
-        if decision.prompt == 'Choose a pile to gain a card into your hand.':
-            return provincial_reaction_workshop(decision, state_view, self.buy_menu_one)
-
         # bureaucrat is played
         if decision.prompt == 'Choose a Victory Card to topdeck.':
             return provincial_reaction_bureaucrat(decision)
@@ -295,12 +288,14 @@ class ProvincialAgent(Agent):
             return provincial_reaction_throne_room(decision)
 
         # library is played
-        if decision.prompt == 'Library draws':
-            return provincial_reaction_library(state_view)
+        if decision.prompt[0:13] == 'Library draws':
+            return provincial_reaction_library(decision)
 
         # mine is played
         if decision.prompt == 'Choose a Treasure to upgrade.':
-            return provincial_reaction_mine(decision, state_view)
+            return provincial_reaction_mine_trash_card(decision, state_view)
+        if decision.prompt == 'Choose a pile to gain a card into your hand.':
+            return provincial_reaction_mine_gain_card(decision, state_view, self.buy_menu)
 
         # chancelor is removed
         # feast is removed
@@ -312,7 +307,7 @@ class ProvincialAgent(Agent):
             return provincial_treasure_phase(decision)
 
         if state_view.player.phase == TurnPhase.BUY_PHASE:
-            return provincial_buy_menu(decision, state_view, state_view.player.coins, self.buy_menu_one)
+            return provincial_buy_menu(decision, state_view, state_view.player.coins, self.buy_menu)
 
         if state_view.player.phase == TurnPhase.ACTION_PHASE:
             return provincial_action_phase(decision)
