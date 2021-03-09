@@ -40,6 +40,12 @@ mine_priority = {
 "Silver" : 19,
 "Copper" : 18
 }
+
+# provincial thresholds
+# https://github.com/techmatt/Provincial/blob/master/DominionDLL/BuyAgenda.cpp#L118
+province_buy_threshold = 4
+duchy_buy_threshold = 3
+estate_buy_threshold = 0 ### provincial has this as 2 but I think that's terrible
 ####################### END PRIORITY SCORES ######################
 
 ######################## HELPER FUNCTIONS ########################
@@ -60,7 +66,6 @@ def Sort_List_Of_Tuples(tup):
     # getting length of list of tuples
     lst = len(tup)
     for i in range(0, lst):
-
         for j in range(0, lst-i-1):
             if (tup[j][1] < tup[j + 1][1]):
                 temp = tup[j]
@@ -77,6 +82,32 @@ def hand_contains(state_view, card_name):
 ###################### END HELPER FUNCTIONS ######################
 
 ######################### PHASE FUNCTIONS ########################
+def provincial_buy_menu(decision, state_view, coins, buy_menu):
+    # provincial greedy green card
+    # https://github.com/techmatt/Provincial/blob/master/DominionDLL/BuyAgenda.cpp#L245
+    prov_index = find_card_in_decision(decision, 'Province')
+    duchy_index = find_card_in_decision(decision, 'Duchy')
+    estate_index = find_card_in_decision(decision, 'Estate')
+    prov_count = state_view.supply_piles["Province"].qty
+    duchy_count = state_view.supply_piles["Duchy"].qty
+    estate_count = state_view.supply_piles["Estate"].qty
+
+    if coins >= 8 and prov_index != [0]:
+        return prov_index
+    if coins >= 5 and duchy_index != [0] and prov_count < duchy_buy_threshold:
+        return duchy_index
+    if coins >= 1 and estate_index != [0] and prov_count < estate_buy_threshold:
+        return estate_index
+
+    for i in range(len(buy_menu)):
+        card = buy_menu[i][0]
+        cost = buy_menu[i][1]
+        amount_to_buy = buy_menu[i][2]
+        if amount_to_buy > 0 and state_view.supply_piles[card].qty > 0 and coins >= cost:
+            buy_menu[i] = (card, cost, amount_to_buy - 1)
+            return find_card_in_decision(decision, card)
+    return [0] #### buy nothing
+
 # provincial's buy menu for Big Money
 def provincial_buy_menu_big_money(decision, state_view, coins):
     if coins >= 8:
@@ -107,9 +138,9 @@ def provincial_action_phase(decision):
     for i in range(1, len(decision.moves)):
         move = decision.moves[i]
         if hasattr(move, 'card') and move.card.name == "Moneylender" and hand_contains("Copper"):
-            cards_ordered.append((i, card_priority[move.card.name]))
+            cards_ordered.append((i, action_priority[move.card.name]))
         elif hasattr(move, 'card'):
-            cards_ordered.append((i, card_priority[move.card.name]))
+            cards_ordered.append((i, action_priority[move.card.name]))
 
     return [Sort_List_Of_Tuples(cards_ordered)[0][0]]
 ####################### END PHASE FUNCTIONS ######################
@@ -159,8 +190,8 @@ def provincial_reaction_chapel(decision, state_view):
     return [0]
 
 # reaction for card workshop
-def provincial_reaction_workshop(decision, state_view):
-    return provincial_buy_menu_big_money(decision, state_view, 4) # always use buy menu
+def provincial_reaction_workshop(decision, state_view, buy_menu):
+    return provincial_buy_menu(decision, state_view, 4, buy_menu) # always use buy menu
 
 # reaction for card bureaucrat
 def provincial_reaction_bureaucrat(decision):
@@ -207,9 +238,9 @@ def provincial_reaction_mine(decision, state_view):
     cards_ordered = []
     for i in range(1, len(decision.moves)):
         move = decision.moves[i]
-        if hasattr(move, 'card') and move.card.name == 'Silver' and state_view.supply_piles['gold'].qty > 0:
+        if hasattr(move, 'card') and move.card.name == 'Silver' and state_view.supply_piles['Gold'].qty > 0:
             cards_ordered.append((i, mine_priority[move.card.name]))
-        elif hasattr(move, 'card') and move.card.name == 'Copper' and state_view.supply_piles['silver'].qty > 0:
+        elif hasattr(move, 'card') and move.card.name == 'Copper' and state_view.supply_piles['Silver'].qty > 0:
             cards_ordered.append((i, mine_priority[move.card.name]))
         elif hasattr(move, 'card'):
             cards_ordered.append((i, -1*move.card.cost)) # ranking provincial uses
@@ -218,6 +249,16 @@ def provincial_reaction_mine(decision, state_view):
 ########################## END REACTIONS #########################
 
 class ProvincialAgent(Agent):
+    def __init__(self):
+        ######################## BUY MENU ########################
+        self.buy_menu_one = [('Gold', 6, 99), ('Witch', 5, 1), ('Council Room', 5, 5), ('Militia', 4, 1), \
+                    ('Silver', 3, 1), ('Village', 3, 5), ('Silver', 3, 99)]
+
+        self.buy_menu_two = [('Gold', 6, 99), ('Mine', 5, 1), ('Silver', 3, 2), ('Library', 5, 1), \
+                    ('Village', 3, 1), ('Mine', 5, 1), ('Village', 3, 1), ('Library', 5, 1), \
+                    ('Village', 3, 2), ('Silver', 3, 99)]
+        ######################## BUY MENU ########################
+
     def policy(self, decision, state_view):
         ######################## DEFAULT #########################
         if not decision.optional and len(decision.moves) == 1:
@@ -233,13 +274,13 @@ class ProvincialAgent(Agent):
 
         # chapel is played
         if decision.prompt == 'Trash up to 4 cards.':
-            return provincial_reaction_chapel(decision)
+            return provincial_reaction_chapel(decision, state_view)
 
         # moat is handeled by global trigger
 
         # workshop is played
         if decision.prompt == 'Choose a pile to gain a card into your hand.':
-            return provincial_reaction_workshop(decision, state_view)
+            return provincial_reaction_workshop(decision, state_view, self.buy_menu_one)
 
         # bureaucrat is played
         if decision.prompt == 'Choose a Victory Card to topdeck.':
@@ -259,7 +300,7 @@ class ProvincialAgent(Agent):
 
         # mine is played
         if decision.prompt == 'Choose a Treasure to upgrade.':
-            return provincial_reaction_mine(decision)
+            return provincial_reaction_mine(decision, state_view)
 
         # chancelor is removed
         # feast is removed
@@ -271,10 +312,9 @@ class ProvincialAgent(Agent):
             return provincial_treasure_phase(decision)
 
         if state_view.player.phase == TurnPhase.BUY_PHASE:
-            return provincial_buy_menu_big_money(decision, state_view, state_view.player.coins)
+            return provincial_buy_menu(decision, state_view, state_view.player.coins, self.buy_menu_one)
 
         if state_view.player.phase == TurnPhase.ACTION_PHASE:
-            provincial_reaction_chapel(decision)
             return provincial_action_phase(decision)
         ###################### END PHASES ########################
 

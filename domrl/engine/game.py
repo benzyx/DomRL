@@ -10,6 +10,7 @@ class Game(object):
 
     def run(self):
         state = self.state
+        player = state.current_player
 
         while not state.is_game_over():
 
@@ -31,7 +32,7 @@ class Game(object):
 
             # Print state of the board.
             process_decision(agent, decision, state)
-        return state
+        return state, player
 
     def print_result(self):
         state = self.state
