@@ -24,6 +24,20 @@ class PlayerView(object):
         self.all_cards = [card for card in player.discard_pile] + \
             [card for card in player.hand] + \
             [card for card in player.draw_pile]
+        self.all_card_names = [card.name for card in player.discard_pile] + \
+            [card.name for card in player.hand] + \
+            [card.name for card in player.draw_pile]
+        def CountFrequency(my_list):
+            # Creating an empty dictionary
+            freq = {}
+            for item in my_list:
+                if (item in freq):
+                    freq[item] += 1
+                else:
+                    freq[item] = 1
+            return freq
+        self.all_card_counts = CountFrequency(self.all_card_names)
+
 
         # TODO(benzyx): do we really want this?
         self.previous_deck = player.previous_deck if is_player else \

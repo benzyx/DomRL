@@ -18,10 +18,31 @@ def find_card_in_decision(decision, card_name):
                 return [idx]
     return [0]
 
+# helper to sort a list of tuples by the second element
+def Sort_List_Of_Tuples(tup):
+    # getting length of list of tuples
+    lst = len(tup)
+    for i in range(0, lst):
+        for j in range(0, lst-i-1):
+            if (tup[j][1] < tup[j + 1][1]):
+                temp = tup[j]
+                tup[j]= tup[j + 1]
+                tup[j + 1]= temp
+    return tup
 
 def get_minimum_coin_card(decision):
-    card_coins = [c.coins for c in decision.moves.card]
-    return [np.argmin(card_coins)]
+    priority = []
+    for i in range(len(decision.moves)):
+        priority.append((decision.moves[i].card.cost, i))
+    priority = Sort_List_Of_Tuples(priority)
+
+    # fix later
+    amount = len(decision.moves) - 3
+    indices = []
+    for i in range(amount):
+        indices.append(priority[i][1])
+    return indices
+    # return [np.argmin(card_coins)]
 
 
 class BigMoneyAgent(Agent):
