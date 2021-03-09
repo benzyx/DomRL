@@ -658,8 +658,9 @@ def library_fn(state, player):
                                          prompt=f"Library draws {cards[0]}, keep?",
                                          yes_prompt="Put into hand.",
                                          no_prompt="Discard.")
-                print(ans)
+                                         
                 if not ans:
+                    print("78910")
                     keep = False
 
             if keep:
