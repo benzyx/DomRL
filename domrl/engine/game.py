@@ -32,7 +32,7 @@ class Game(object):
 
             # Print state of the board.
             process_decision(agent, decision, state)
-        return state, player
+        return state
 
     def print_result(self):
         state = self.state

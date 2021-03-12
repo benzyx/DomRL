@@ -213,7 +213,7 @@ def provincial_reaction_militia(state_view, decision):
 
     # rank cards
     cards_ordered = []
-    for i in range(1, len(decision.moves)):
+    for i in range(len(decision.moves)):
         move = decision.moves[i]
         if hasattr(move, 'card') and move.card.name in discard_priority:
             cards_ordered.append((i, discard_priority[move.card.name]))
@@ -221,12 +221,12 @@ def provincial_reaction_militia(state_view, decision):
             cards_ordered.append((i, -100 - move.card.cost)) # ranking provincial uses
 
     cards_ordered = Sort_List_Of_Tuples(cards_ordered)
-    card_to_discard = []
+    cards_to_discard = []
     num_to_discard = len(decision.moves) - 3
     for index in range(num_to_discard):
-        card_to_discard.append(cards_ordered[index][0])
+        cards_to_discard.append(cards_ordered[index][0])
 
-    return card_to_discard
+    return cards_to_discard
 
 # reaction for card throne room
 def provincial_reaction_throne_room(decision):
@@ -234,7 +234,7 @@ def provincial_reaction_throne_room(decision):
 
 # reaction for card library
 def provincial_reaction_library(decision):
-    return [1] # for now we always keep action cards (need to check what provincial does)
+    return [0] # for now we always keep action cards (need to check what provincial does)
 
 # reaction for card mine
 def provincial_reaction_mine_trash_card(decision, state_view):
