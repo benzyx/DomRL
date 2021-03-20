@@ -13,7 +13,7 @@ class EventType(Enum):
     REVEAL = 8
     SHUFFLE = 9
     CONTEXT = 10
-
+    ENDTURN = 11
 
 def get_action_word(event_type: EventType) -> str:
     if event_type == EventType.BUY:
@@ -32,7 +32,7 @@ def get_action_word(event_type: EventType) -> str:
         return "topdecks"
     if event_type == EventType.REVEAL:
         return "reveals"
-    return ""
+    return "[undefined action]"
 
 
 class Event(object):
@@ -122,7 +122,7 @@ class ShuffleEvent(Event):
         self.player = player
 
     def __str__(self):
-        return f"{self.player} shuffles his deck."
+        return f"{self.player} shuffles their deck."
 
     def to_dict(self):
         return {
@@ -149,37 +149,46 @@ class ExitContext(Event):
         self.event_type = EventType.CONTEXT
         self.value = -1
 
-    def obfuscate(self, player):
-        return self
-
     def to_dict(self):
         return {
             "type": self.event_type.name,
             "value": -1,
         }
 
+class EndTurnEvent(Event):
+    def __init__(self, player):
+        self.event_type = EventType.ENDTURN
+        self.player = player
 
-def print_dict_log(event_dict_list):
+    def __str__(self):
+        return f"{self.player.name} ends their turn."
+
+    def to_dict(self):
+        return {
+            "type": self.event_type.name,
+            "str": str(self),
+        }
+
+def dict_log_to_string(event_dict_list):
     """
     This function will be used to easily print out a list of Events in dict form.
     """
-    print("=== Replaying log from beginning ===")
+    log_str = ""
     context_level = 0
     for event in event_dict_list:
-        if event["type"] == EventType.CONTEXT.name:
+        if event['type'] == EventType.CONTEXT.name:
             context_level += event["value"]
         else:
-            for i in range(context_level):
-                print("  ", end="")
-            print(event["str"])
-    print("===             end              ===")
+            log_str += "  " * context_level
+            log_str += event['str']
+            log_str += "\n"
+    return log_str
 
 
 class EventLog(object):
     """
     Event log.
     """
-
     def __init__(self, verbose):
         self.events = []
         self.context_level = 0
@@ -188,7 +197,6 @@ class EventLog(object):
     def add_event(self, event):
         self.events.append(event)
 
-        # For now, actually print the contents of the log.
         if event.event_type == EventType.CONTEXT:
             self.context_level += event.value
         else:
@@ -199,3 +207,17 @@ class EventLog(object):
 
     def hide_for_player(self, player):
         return [event.obfuscate(player).to_dict() for event in self.events]
+
+    def to_string(self):
+        return dict_log_to_string(self.to_dict_log())
+
+    def to_dict_log(self):
+        return [event.to_dict() for event in self.events]
+
+    def print(self):
+        """
+        This function will be used to easily print out a list of Events in dict form.
+        """
+        print("=== Replaying log from beginning ===")
+        print(self.to_string())
+        print("===             end              ===")

@@ -37,6 +37,7 @@ class Player(object):
         self.hand = hand or []
         self.play_area = play_area or []
         self.phase = phase or TurnPhase.END_PHASE
+        self.turns = 0
         self.immune_to_attack = False
 
         # TODO: I don't think this is necessary.
@@ -56,6 +57,7 @@ class Player(object):
         self.buys = 1
         self.coins = 0
         self.phase = TurnPhase.ACTION_PHASE
+        self.turns += 1
 
     @property
     def all_cards(self):
@@ -159,15 +161,19 @@ class GameState(object):
     def get_winners(self):
         winners = []
         best_vp = self.players[0].total_vp()
-        best_vp_taken_extra_turn = False
+        best_turns = self.players[0].turns
+
         for player in self.players:
             if player.total_vp() > best_vp:
                 winners = [player]
+                best_vp = player.total_vp()
+                best_turns = player.turns
             elif player.total_vp() == best_vp:
-                if not best_vp_taken_extra_turn and player.idx >= self.current_player_idx:
-                    best_vp_taken_extra_turn = True
+                if best_turns > player.turns:
+                    best_turns = player.turns
                     winners = [player]
-                else:
+                elif best_turns == player.turns:
                     winners.append(player)
 
         return winners
+

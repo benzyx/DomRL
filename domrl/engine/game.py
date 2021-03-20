@@ -2,13 +2,14 @@ import domrl.engine.state as st
 from .decision import *
 from .util import TurnPhase
 from .state_view import StateView
+import pandas as pd
 
 class Game(object):
     def __init__(self, agents, players=None, kingdoms=None, verbose=True):
         self.state = st.GameState(agents, players=players, kingdoms=kingdoms, verbose=verbose)
         self.agents = agents
 
-    def run(self):
+    def run(self, print_logs=False):
         state = self.state
 
         while not state.is_game_over():
@@ -31,7 +32,24 @@ class Game(object):
 
             # Print state of the board.
             process_decision(agent, decision, state)
-        return state
+        
+        return self.state
+
+    def get_log(self):
+        return self.state.event_log
+
+    def get_result_df(self):
+        state = self.state
+        winners_names = [p.name for p in state.get_winners()]
+        dicts = []
+        for i, player in enumerate(state.players):
+            player_dict = {}
+            player_dict['Player'] = player.name
+            player_dict['VP'] = player.total_vp()
+            player_dict['Turns'] = player.turns
+            player_dict['Winner'] = player.name in winners_names
+            dicts.append(player_dict)
+        return pd.DataFrame(dicts)
 
     def print_result(self):
         state = self.state

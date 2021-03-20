@@ -3,3 +3,6 @@
 .DS_Store
 .idea/**
 .pytest_cache/**
+build/**
+dist/**
+DomRL.egg-info/**

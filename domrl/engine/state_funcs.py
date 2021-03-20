@@ -44,6 +44,12 @@ def topdeck(state, player, card, container):
 
 
 def play_inplace(state, player, card):
+    """
+    Play a card without moving it.
+
+    Activates the effect of the card.
+    Wraps the card effect with a EnterContext and ExitContext event.
+    """
     process_event(state, log.PlayEvent(player, card))
     process_event(state, log.EnterContext())
     card.play(state, player)
@@ -51,6 +57,11 @@ def play_inplace(state, player, card):
 
 
 def play(state, player, card, container):
+    """
+    Play a card normally:
+    1. Move card to play area.
+    2. Activate effect of card (calls play_inplace).
+    """
     card_idx = container.index(card)
     container.pop(card_idx)
     player.play_area.append(card)
@@ -59,7 +70,6 @@ def play(state, player, card, container):
 
 def reveal(state, player, card):
     process_event(state, log.RevealEvent(player, card))
-
 
 # These next functions are for drawing cards.
 
@@ -114,12 +124,18 @@ def clean_up(state, player):
 
 def end_turn(state):
     clean_up(state, state.current_player)
-    state.next_player_turn()
-    if state.current_player_idx == 0:
-        state.turn += 1
 
     # Reset all Triggers for this turn (such as Merchant).
     state.turn_triggers = []
+
+    process_event(state, log.EndTurnEvent(state.current_player))
+
+    if state.is_game_over():
+        return
+
+    state.next_player_turn()
+    if state.current_player_idx == 0:
+        state.turn += 1
 
     state.current_player.init_turn()
 
@@ -128,7 +144,6 @@ These apply the effect to a card in a player's hand.
 
 The follow (essential) functions will mutate state.
 """
-
 
 def play_card_from_hand(state, player, card):
     """ Play card from hand """

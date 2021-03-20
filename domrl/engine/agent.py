@@ -41,7 +41,9 @@ class StdinAgent(Agent):
             user_input = input()
 
             if user_input == "?":
+                print("=== Replaying log from beginning ===")
                 log.print_dict_log(state_view.event_log)
+                print("===             end              ===")
 
                 # Refactor this to be somewhere else.
                 for _, pile in state_view.supply_piles.items():

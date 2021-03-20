@@ -71,5 +71,5 @@ class StateView(object):
             self.supply_piles[name] = SupplyPileView(pile)
         self.player = PlayerView(player, True)
         self.other_players = [PlayerView(opp, False) for opp in state.other_players(player)]
-        self.event_log = state.event_log.hide_for_player(player)
+        self.events = state.event_log.hide_for_player(player)
         self.trash = [card.name for card in state.trash]
