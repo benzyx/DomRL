@@ -6,6 +6,7 @@ import domrl.engine.decision as dec
 import domrl.engine.effect as effect
 import domrl.engine.game as game
 import domrl.engine.trigger as trig
+import math
 
 SupplyPile = supply.SupplyPile
 
@@ -196,7 +197,7 @@ Gardens = Card(
     name="Gardens",
     types=[CardType.VICTORY],
     cost=4,
-    vp_fn=lambda all_cards: len(all_cards)
+    vp_fn=lambda all_cards: math.floor(len(all_cards) / 10)
 )
 
 Chapel = Card(
@@ -235,7 +236,7 @@ class TrashAndGainEffect(effect.Effect):
             state=state,
             player=player,
             num_select=1,
-            prompt=f"Choose a card to trash.",
+            prompt=f"Choose a card to trash and gain card costing 2 more.",
             filter_func=None,
             optional=False
         )
@@ -404,9 +405,9 @@ def poacher_fn(state, player):
         cards = dec.choose_cards(
             state,
             player,
-            num_select=2,
+            num_select=pileout_count,
             prompt=f"You must discard {pileout_count} card(s).",
-            filter_func=lambda card: card.name == "Copper",
+            filter_func=lambda card: card,
             optional=False,
             card_container=player.hand,
         )
@@ -647,7 +648,7 @@ Harbinger = Card(
 def library_fn(state, player):
     set_aside = []
     while len(player.hand) < 7:
-        cards = draw(state, player, 1, draw_event=False)
+        cards = draw(state, player, 1, draw_event=True) # switched to true
 
         if cards:
             # Give Player a decision to keep or not.
@@ -671,7 +672,7 @@ def library_fn(state, player):
 
     for card in set_aside:
         discard(state, player, card, set_aside)
-        
+
 
 Library = Card(
     name="Library",
@@ -686,11 +687,17 @@ class MoatTrigger(trig.Trigger):
         return event.event_type == log.EventType.PLAY and event.card.is_type(CardType.ATTACK)
 
     def apply(self, event: log.Event, state):
+        # print("now gets here 3")
         for opp in state.other_players(event.player):
-            if Moat in opp.hand:
+            # print("now gets here 4")
+            # print([card.name for card in opp.hand])
+            opp_hand_card_names = [card.name for card in opp.hand]
+            # print('Moat' in opp_hand_card_names)
+            if 'Moat' in opp_hand_card_names:
                 result = dec.boolean_choice(state,
                                             opp,
                                             "Reveal Moat to defend attack?")
+                # print("now gets here 5")
                 if result:
                     reveal(state, opp, Moat)
                     opp.immune_to_attack = True

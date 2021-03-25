@@ -27,8 +27,8 @@ def choose_supply_from_kingdoms(kingdoms):
         "Duchy": SupplyPile(Duchy, 8),
         "Province": SupplyPile(Province, 8),
         "Copper": SupplyPile(Copper, 46),
-        "Silver": SupplyPile(Silver, 30),
-        "Gold": SupplyPile(Gold, 16),
+        "Silver": SupplyPile(Silver, 40),
+        "Gold": SupplyPile(Gold, 30),
     }
 
     for key in supply_keys:

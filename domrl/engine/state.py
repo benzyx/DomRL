@@ -4,6 +4,7 @@ from .supply import choose_supply_from_kingdoms
 from .card import *
 import domrl.engine.cards.base as base
 import domrl.engine.logger as log
+import math
 
 
 class Player(object):
@@ -70,7 +71,6 @@ class Player(object):
             if card.vp_fn:
                 total += card.vp_fn(self.all_cards)
         return total
-
 
 class GameState(object):
     """

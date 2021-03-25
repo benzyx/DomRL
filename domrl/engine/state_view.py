@@ -23,10 +23,12 @@ class PlayerView(object):
         # added to allow for full provincial functionality
         self.all_cards = [card for card in player.discard_pile] + \
             [card for card in player.hand] + \
-            [card for card in player.draw_pile]
+            [card for card in player.draw_pile] + \
+            [card for card in player.play_area]
         self.all_card_names = [card.name for card in player.discard_pile] + \
             [card.name for card in player.hand] + \
-            [card.name for card in player.draw_pile]
+            [card.name for card in player.draw_pile] + \
+            [card for card in player.play_area]
         def CountFrequency(my_list):
             # Creating an empty dictionary
             freq = {}
